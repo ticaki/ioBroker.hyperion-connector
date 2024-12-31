@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/lib/controls-d.ts"],
+  "sourcesContent": ["export type controlsForColor = {\n    command: 'color';\n    color: number[];\n    priority: number;\n    origin: string;\n    duration: number;\n};\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

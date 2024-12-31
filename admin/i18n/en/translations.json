@@ -1,5 +1,11 @@
 {
 	"hyperion-ng2 adapter settings": "Adapter settings for hyperion-ng2",
-	"option1": "option1",
-	"option2": "option2"
+	"devices": "Devices",
+    "ServerName": "Server Name(read only)",
+    "ServerProtocol": "Server Protocol",
+    "ServerIP": "Server IP",
+    "ServerPort": "Server Port",
+    "Token": "Hyperion-Token",
+    "enabled": "Enabled",
+    "getDevices": "Refresh Devices"
 }

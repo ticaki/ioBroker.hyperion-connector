@@ -2,15 +2,85 @@
 	"i18n": true,
 	"type": "panel",
 	"items": {
-		"option1": {
-			"type": "checkbox",
-			"label": "option1",
-			"newLine": true
-		},
-		"option2": {
-			"type": "text",
-			"label": "option2",
-			"newLine": true
-		}
-	}
+        "getDevices": {
+					"newLine": true,
+					"type": "sendTo",
+                    "defaultSendTo": "getDevices",
+					"command": "getDevices",
+					"jsonData": "{ \"date\": \"${data.devices}\"}",
+					"label": "getDevices",
+					"useNative": true,
+					"variant": "outlined",
+                    "disabled": "_changed",
+					"showProcess" : true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+                    "xl": 12
+				},
+            "devices":{
+                "type": "table",
+                "label": "devices",
+                "items": [
+                    {
+                        "type": "checkbox",
+                        "attr": "enabled",
+                        "title": "enabled",
+                        "width": "5%",
+                        "default": true
+                    },
+                    {
+                        "type": "text",
+                        "attr": "name",
+                        "title": "ServerName",
+                        "readOnly": true,
+                        "disabled": "true"
+                    },
+                    {
+                        "type": "select",
+                        "attr": "protocol",
+                        "title": "ServerProtocol", 
+                        "validator": "data.ServerProtocol !== ''",
+                        "validatorNoSaveOnError": true,  
+                        "width": "5%",
+                        "options": [
+                            {
+                                "label": "http://",
+                                "value": "http:"
+                            },
+                            {
+                                "label": "https://",
+                                "value": "https:"
+                            }
+                        ],
+                        "default": "http:"
+                    },
+                    {
+                        "type": "text",
+                        "attr": "ip",
+                        "title": "ServerIP",
+                        "validator": "data.ip !== ''",
+                        "validatorNoSaveOnError": true 
+                    },
+                    {
+                        "type": "number",
+                        "attr": "port",
+                        "title": "ServerPort",
+                        "validator": "data.port>0 && data.port<65536",
+                        "validatorNoSaveOnError": true,
+                        "width": "7%",
+                        "default": 8090
+                    },
+                    
+                    {
+                        "type": "text",
+                        "attr": "token",
+                        "title": "Token",
+                        "allowEmpty": true
+                    }
+                ]
+                }
+            }
+  
 }
