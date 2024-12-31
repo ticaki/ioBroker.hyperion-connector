@@ -41,6 +41,7 @@ export class Controller extends BaseClass {
                                 token: '',
                                 enabled: true,
                             };
+                            this.log.debug(`Init device: ${device.name} from config`);
                             const hyperion = new Hyperion(this.adapter, device.UDN, data);
                             this.hyperions.push(hyperion);
                             await hyperion.init();
@@ -98,7 +99,7 @@ export class Controller extends BaseClass {
             enabled: true,
         };
 
-        if (!this.hyperions.some(h => h.UDN == device.device.UDN)) {
+        if (this.hyperions.every(h => h.UDN !== device.device.UDN.replace('uuid:', ''))) {
             this.log.info(`Found new hyperion device: ${device.device.friendlyName}`);
             const hyperion = new Hyperion(this.adapter, device.device.UDN, data);
             this.hyperions.push(hyperion);

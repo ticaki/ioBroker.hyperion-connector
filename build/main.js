@@ -101,7 +101,7 @@ class HyperionNg2 extends utils.Adapter {
    * @param obj - The message object
    */
   async onMessage(obj) {
-    var _a, _b;
+    var _a;
     this.log.debug(`Data from configuration received : ${JSON.stringify(obj)}`);
     if (typeof obj === "object" && obj.message) {
       this.log.debug(`with message : ${JSON.stringify(obj.message)}`);
@@ -109,9 +109,9 @@ class HyperionNg2 extends utils.Adapter {
         this.log.info(`received message ${obj.message}`);
       }
       if (obj.command === "getDevices") {
-        const devices = (_a = this.config.devices) != null ? _a : [];
+        const devices = [];
         for (const hyperion of this.controller.hyperions) {
-          const index = ((_b = this.config.devices) != null ? _b : []).findIndex((d) => d.UDN === hyperion.UDN);
+          const index = ((_a = this.config.devices) != null ? _a : []).findIndex((d) => d.UDN === hyperion.UDN);
           if (index >= 0) {
             devices[index] = {
               ...this.config.devices[index],

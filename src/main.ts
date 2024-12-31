@@ -7,6 +7,7 @@
 import * as utils from '@iobroker/adapter-core';
 import { Library } from './lib/library';
 import { Controller } from './lib/controller';
+import type { configOfHyperionInstance } from './lib/types-d';
 
 // Load your modules here, e.g.:
 // import * as fs from "fs";
@@ -96,7 +97,7 @@ export class HyperionNg2 extends utils.Adapter {
                 this.log.info(`received message ${obj.message}`);
             }
             if (obj.command === 'getDevices') {
-                const devices = this.config.devices ?? [];
+                const devices: configOfHyperionInstance[] = [];
                 for (const hyperion of this.controller.hyperions) {
                     const index = (this.config.devices ?? []).findIndex(d => d.UDN === hyperion.UDN);
                     if (index >= 0) {
