@@ -64,7 +64,7 @@ class Network extends import_library.BaseClass {
    * @param callback
    */
   async doDiscovery(callback) {
-    this.log.debug("Searching for service", this.serviceType);
+    this.log.debug(`Searching for service: ${this.serviceType}`);
     this.ssdp.on("response", async (headers, statusCode, rinfo) => {
       var _a;
       if (headers === void 0 || statusCode !== 200 || headers.USN === void 0 || headers.LOCATION === void 0) {
@@ -74,8 +74,7 @@ class Network extends import_library.BaseClass {
         return;
       }
       this.log.debug(
-        "New/Updated service",
-        `USN: ${headers.USN}, Status:${statusCode}, Adress:${rinfo.address}, location:${headers.LOCATION}`
+        `New/Updated service: USN: ${headers.USN}, Status:${statusCode}, Adress:${rinfo.address}, location:${headers.LOCATION}`
       );
       try {
         const url = new URL(headers.LOCATION);

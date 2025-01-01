@@ -1,5 +1,13 @@
 {
-	"hyperion-ng2 adapter settings": "Настройки адаптера для hyperion-ng2",
-	"option1": "вариант 1",
-	"option2": "вариант 2"
+    "ServerIP": "IP-адрес сервера",
+    "ServerName": "Имя сервера (только чтение)",
+    "ServerPort": "Порт сервера",
+    "ServerProtocol": "Серверный протокол",
+    "Token": "Гиперион-Жетон",
+    "controls.action": "JSON-команда",
+    "controls.channel": "Команды отправляются на сервер",
+    "devices": "Устройства",
+    "enabled": "Включено",
+    "getDevices": "Обновить устройства",
+    "hyperion-ng2 adapter settings": "Настройки адаптера для hyperion-ng2"
 }

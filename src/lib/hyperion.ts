@@ -13,6 +13,7 @@ export class Hyperion extends BaseClass {
     ip: string = '';
     protocol: string = '';
     port: number = 0;
+    token: string | undefined = undefined;
 
     ws: WebSocket | undefined;
 
@@ -22,6 +23,8 @@ export class Hyperion extends BaseClass {
 
     legacyAliveCheck: boolean = true;
 
+    // authorize-tokenRequired // authorize-login
+    connectionState: 'connected' | 'disconnected' | 'authorize' | 'pendingAuthorize' | 'notAuthorize' = 'disconnected';
     /**
      * constructor
      *
@@ -35,6 +38,7 @@ export class Hyperion extends BaseClass {
         this.protocol = config.protocol;
         this.ip = config.ip;
         this.port = config.port;
+        this.token = config.token;
     }
 
     checkHyperionVersion(): void {
@@ -67,6 +71,7 @@ export class Hyperion extends BaseClass {
      * initialize the device
      */
     async init(): Promise<void> {
+        this.setOnline(false);
         await this.library.writedp(this.UDN, undefined, {
             _id: '',
             type: 'device',
@@ -77,6 +82,14 @@ export class Hyperion extends BaseClass {
         });
         await this.library.writeFromJson(this.UDN, 'device', statesObjects, controlDefaults, false, true);
         this.adapter.subscribeStates(`${this.library.cleandp(`${this.UDN}.controls`)}.*`);
+
+        if (this.token === undefined || this.token.length < 36) {
+            const obj = await this.adapter.getObjectAsync(this.UDN);
+            if (obj && obj.native && obj.native.token) {
+                this.token = this.adapter.decrypt(this.UDN, obj.native.token);
+            }
+        }
+
         await this.reconnect();
     }
     /**
@@ -138,9 +151,14 @@ export class Hyperion extends BaseClass {
                 if (this.description) {
                     this.log.info(`Connected to ${this.description.device.friendlyName}`);
                 }
-                this.aliveReset();
                 if (this.ws) {
                     this.ws.send(
+                        JSON.stringify({
+                            command: 'authorize',
+                            subcommand: 'tokenRequired',
+                        }),
+                    );
+                    /*this.ws.send(
                         JSON.stringify({
                             command: 'sysinfo',
                             tan: 1,
@@ -152,15 +170,138 @@ export class Hyperion extends BaseClass {
                             subscribe: ['all'],
                             tan: 1,
                         }),
-                    );
+                    );*/
                 }
             });
             this.ws.addEventListener('message', async event => {
                 try {
-                    this.aliveReset();
                     const data = typeof event.data === 'string' ? JSON.parse(event.data) : undefined;
                     if (data) {
-                        if (data.command === 'serverinfo') {
+                        if (data.command.startsWith('authorize-')) {
+                            //handle authorize
+
+                            this.log.debug('Received:', JSON.stringify(data));
+                            // if authorize-login or authorize-tokenRequired with required false we start the connection
+                            if (data.command === 'authorize-login' && data.success === true) {
+                                this.log.info('Login successful');
+                                this.connectionState = 'connected';
+                                this.aliveReset();
+                                if (this.ws) {
+                                    this.ws.send(
+                                        JSON.stringify({
+                                            command: 'sysinfo',
+                                            tan: 1,
+                                        }),
+                                    );
+                                    this.ws.send(
+                                        JSON.stringify({
+                                            command: 'serverinfo',
+                                            subscribe: ['all'],
+                                            tan: 1,
+                                        }),
+                                    );
+                                    return;
+                                }
+                            } else if (
+                                data.command === 'authorize-tokenRequired' &&
+                                data.info &&
+                                data.info.required === false
+                            ) {
+                                this.log.info('No Login required');
+                                this.connectionState = 'connected';
+                                this.aliveReset();
+                                if (this.ws) {
+                                    this.ws.send(
+                                        JSON.stringify({
+                                            command: 'sysinfo',
+                                            tan: 1,
+                                        }),
+                                    );
+                                    this.ws.send(
+                                        JSON.stringify({
+                                            command: 'serverinfo',
+                                            subscribe: ['all'],
+                                            tan: 1,
+                                        }),
+                                    );
+                                    return;
+                                }
+                            } else if (data.command === 'authorize-tokenRequired') {
+                                if (data.info && data.info.required === true) {
+                                    this.connectionState = 'authorize';
+                                    if (this.token !== undefined && this.token.length >= 36) {
+                                        // we have a token try it
+                                        if (this.ws) {
+                                            this.ws.send(
+                                                JSON.stringify({
+                                                    command: 'authorize',
+                                                    subcommand: 'login',
+                                                    token: this.token,
+                                                }),
+                                            );
+                                            return;
+                                        }
+                                    } else {
+                                        // no token saved so request one
+                                        this.connectionState = 'pendingAuthorize';
+                                        if (this.ws) {
+                                            this.log.warn('Requesting token! Please check the Hyperion server webui!');
+                                            this.ws.send(
+                                                JSON.stringify({
+                                                    command: 'authorize',
+                                                    subcommand: 'requestToken',
+                                                    comment: 'Iobroker hyperion-ng2',
+                                                    id: 'io341',
+                                                }),
+                                            );
+                                            return;
+                                        }
+                                    }
+                                }
+                            } else if (data.command === 'authorize-requestToken' && data.success === true) {
+                                if (data.success === true) {
+                                    this.connectionState = 'authorize';
+                                    this.log.debug('Token request successful');
+                                    this.token = data.info.token;
+                                    if (typeof this.token === 'string' && this.token.length >= 36) {
+                                        await this.adapter.extendObject(this.UDN, {
+                                            native: {
+                                                token: this.adapter.encrypt(this.UDN, this.token),
+                                            },
+                                        });
+
+                                        if (this.ws) {
+                                            this.ws.send(
+                                                JSON.stringify({
+                                                    command: 'authorize',
+                                                    subcommand: 'login',
+                                                    token: this.token,
+                                                }),
+                                            );
+                                            return;
+                                        }
+                                    }
+                                }
+                            } else if (data.command === 'authorize-requestToken' && data.success === false) {
+                                this.log.error('Token request timeout or denied');
+                            } else if (data.command === 'authorize-login' && data.success === false) {
+                                this.log.error(
+                                    'Login failed - wrong token? Please check the Hyperion server webui and adminpage of this adapter.',
+                                );
+                                const obj = await this.adapter.getObjectAsync(this.UDN);
+                                if (obj && obj.native && obj.native.token && obj.native.token.length >= 36) {
+                                    this.log.error(
+                                        'An automatically generated token was found for this server, in the course of this error the token was deleted. Restart the adapter and confirm access in the Hyperion webui.',
+                                    );
+                                    delete obj.native.token;
+                                    await this.adapter.setObject(obj._id, obj);
+                                }
+                            }
+                            this.log.error('Not authorized');
+                            this.connectionState = 'notAuthorize';
+                            this.onUnload();
+                            return;
+                        } else if (data.command === 'serverinfo') {
                             const info = data.info;
                             info.components = this.changeArrayToJsonIfName(info.components);
                             await this.updateComponentControlsStates(info.components);
@@ -200,6 +341,7 @@ export class Hyperion extends BaseClass {
                                         }),
                                     );
                                 }
+                                // We cant handle unknown updates so out here and wait for serverinfo
                                 return;
                             }
 
@@ -216,6 +358,7 @@ export class Hyperion extends BaseClass {
                             await this.updateACKControlsStates(data);
                             this.log.debug('Received:', JSON.stringify(data));
                         }
+                        this.aliveReset();
                     }
                 } catch {
                     // nothing to do
@@ -225,7 +368,9 @@ export class Hyperion extends BaseClass {
             this.ws.addEventListener('close', () => {
                 this.log.info('Connection closed');
                 this.ws = undefined;
-                this.delayReconnect();
+                if (this.connectionState !== 'notAuthorize') {
+                    this.delayReconnect();
+                }
             });
 
             this.ws.addEventListener('error', async error => {
@@ -314,8 +459,10 @@ export class Hyperion extends BaseClass {
 
     /**
      * reset the alive check
+     *
+     * @param stop stop the alive check
      */
-    aliveReset(): void {
+    aliveReset(stop: boolean = false): void {
         //this.log.debug('Reset alive check');
         this.setOnline(true);
         if (this.aliveCheckTimeout) {
@@ -324,7 +471,9 @@ export class Hyperion extends BaseClass {
         if (this.aliveTimeout) {
             this.adapter.clearTimeout(this.aliveTimeout);
         }
-        this.aliveCheck();
+        if (!stop) {
+            this.aliveCheck();
+        }
     }
 
     /**
@@ -343,7 +492,8 @@ export class Hyperion extends BaseClass {
         if (this.aliveCheckTimeout) {
             this.adapter.clearTimeout(this.aliveCheckTimeout);
         }
-        this.log.info('unload');
+        this.setOnline(false);
+        this.log.debug('unload');
     }
 
     /**

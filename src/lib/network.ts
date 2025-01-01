@@ -42,7 +42,7 @@ export class Network extends BaseClass {
     async doDiscovery(
         callback: (protocol: string, ip: string, port: number, device: DescriptionType) => Promise<void>,
     ): Promise<void> {
-        this.log.debug('Searching for service', this.serviceType);
+        this.log.debug(`Searching for service: ${this.serviceType}`);
         this.ssdp.on('response', async (headers, statusCode, rinfo) => {
             if (
                 headers === undefined ||
@@ -57,8 +57,7 @@ export class Network extends BaseClass {
             }
             // do something because a new device was found
             this.log.debug(
-                'New/Updated service',
-                `USN: ${headers.USN}, Status:${statusCode}, Adress:${rinfo.address}, location:${headers.LOCATION}`,
+                `New/Updated service: USN: ${headers.USN}, Status:${statusCode}, Adress:${rinfo.address}, location:${headers.LOCATION}`,
             );
             try {
                 // get ip from location

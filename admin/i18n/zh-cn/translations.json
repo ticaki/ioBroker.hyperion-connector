@@ -1,5 +1,13 @@
 {
-	"hyperion-ng2 adapter settings": "hyperion-ng2的适配器设置",
-	"option1": "选项1",
-	"option2": "选项2"
+    "ServerIP": "服务器IP",
+    "ServerName": "服务器名称（只读）",
+    "ServerPort": "服务器端口",
+    "ServerProtocol": "服务器协议",
+    "Token": "Hyperion-Token",
+    "controls.action": "JSON命令",
+    "controls.channel": "命令发送到服务器",
+    "devices": "设备",
+    "enabled": "启用",
+    "getDevices": "刷新设备",
+    "hyperion-ng2 adapter settings": "hyperion-ng2的适配器设置"
 }

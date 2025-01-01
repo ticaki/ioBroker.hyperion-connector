@@ -1,5 +1,13 @@
 {
-	"hyperion-ng2 adapter settings": "Adaptereinstellungen für hyperion-ng2",
-	"option1": "Option1",
-	"option2": "Option2"
+    "ServerIP": "Server-IP",
+    "ServerName": "Servername (schreibgeschützt)",
+    "ServerPort": "Server-Port",
+    "ServerProtocol": "Serverprotokoll",
+    "Token": "Hyperion-Token",
+    "controls.action": "JSON-Befehl",
+    "controls.channel": "Befehle werden an den Server gesendet",
+    "devices": "Geräte",
+    "enabled": "Ermöglicht",
+    "getDevices": "Geräte aktualisieren",
+    "hyperion-ng2 adapter settings": "Adaptereinstellungen für hyperion-ng2"
 }

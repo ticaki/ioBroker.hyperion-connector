@@ -1,11 +1,13 @@
 {
-	"hyperion-ng2 adapter settings": "Adapter settings for hyperion-ng2",
-	"devices": "Devices",
-    "ServerName": "Server Name(read only)",
-    "ServerProtocol": "Server Protocol",
     "ServerIP": "Server IP",
+    "ServerName": "Server Name(read only)",
     "ServerPort": "Server Port",
+    "ServerProtocol": "Server Protocol",
     "Token": "Hyperion-Token",
+    "controls.action": "JSON-Command",
+    "controls.channel": "Commands send to server",
+    "devices": "Devices",
     "enabled": "Enabled",
-    "getDevices": "Refresh Devices"
+    "getDevices": "Refresh Devices",
+    "hyperion-ng2 adapter settings": "Adapter settings for hyperion-ng2"
 }

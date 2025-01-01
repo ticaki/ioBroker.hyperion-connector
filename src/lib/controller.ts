@@ -11,7 +11,8 @@ export class Controller extends BaseClass {
     network: Network;
     hyperions: Hyperion[] = [];
     deviceList: configOfHyperionInstance[] = [];
-    checkForDevicesTimeout: ioBroker.Timeout | undefined = undefined;
+
+    initLogInterval: ioBroker.Interval | undefined = undefined;
     /**
      * constructor
      *
@@ -24,6 +25,8 @@ export class Controller extends BaseClass {
 
     /**
      * init
+     * init all devices from config and do a network discovery
+     * give user a log message about the found devices
      */
     async init(): Promise<void> {
         const devices = this.adapter.config.devices;
@@ -54,19 +57,26 @@ export class Controller extends BaseClass {
         }
 
         await this.network.doDiscovery(this.findDevice);
-        this.checkForDevicesTimeout = this.adapter.setTimeout(async () => {
-            //for (const hyperion of this.hyperions) {
-            //await hyperion.getConfigTemplate();
-            //}
+        this.initLogInterval = this.adapter.setInterval(() => {
+            if (this.hyperions.some(h => h.connectionState === 'pendingAuthorize')) {
+                return;
+            }
+
             const notConfigured =
                 this.hyperions.filter(item =>
                     (this.adapter.config.devices || [{ UDN: null }]).some(
                         (c: configOfHyperionInstance) => c.UDN !== item.UDN,
                     ),
                 ) || [];
+            const pendingAuthorize = this.hyperions.filter(item => item.connectionState === 'pendingAuthorize') || [];
+            const disconnected =
+                this.hyperions.filter(
+                    item => item.connectionState === 'disconnected' || item.connectionState === 'notAuthorize',
+                ) || [];
 
             this.log.info(
-                `Init done - found devices: online: ${this.hyperions.length} - configured: ${Array.isArray(this.adapter.config.devices) ? this.adapter.config.devices.length : 0} - not configured: ${notConfigured.length}`,
+                `Init done - found devices: online: ${this.hyperions.length - disconnected.length} - disconnected: ${disconnected.length} - configured: ${Array.isArray(this.adapter.config.devices) ? this.adapter.config.devices.length : 0} 
+                - not configured: ${notConfigured.length} - pending authorize: ${pendingAuthorize.length}`,
             );
             if (this.hyperions.length === 0) {
                 this.log.warn('Init done - no devices found - please start at least one hyperion-server.');
@@ -76,7 +86,10 @@ export class Controller extends BaseClass {
                     'If you have a running hyperion-server and no devices are found, please check the network settings.',
                 );
             }
-        }, 3000);
+            if (this.initLogInterval) {
+                this.adapter.clearInterval(this.initLogInterval);
+            }
+        }, 5000);
     }
 
     /**
@@ -111,8 +124,8 @@ export class Controller extends BaseClass {
      * Is called when adapter shuts down - callback has to be called under any circumstances!
      */
     onUnload(): void {
-        if (this.checkForDevicesTimeout) {
-            this.adapter.clearTimeout(this.checkForDevicesTimeout);
+        if (this.initLogInterval) {
+            this.adapter.clearInterval(this.initLogInterval);
         }
         for (const hyperion of this.hyperions) {
             hyperion.onUnload();
