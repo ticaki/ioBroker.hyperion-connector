@@ -12,7 +12,7 @@
 
 ## hyperion-ng2 adapter for ioBroker
 
-Connect to hyperion.ng server.
+Connect to hyperion.ng server. Hyperion Projekt https://hyperion-project.org/forum/
 
 ## Changelog
 <!--
