@@ -122,7 +122,7 @@ export class Hyperion extends BaseClass {
             });
             // write description to states
             await this.library.writeFromJson(
-                `${this.description.device.UDN}.device`,
+                `${this.UDN}.device`,
                 'device.description',
                 statesObjects,
                 this.description,
@@ -163,10 +163,11 @@ export class Hyperion extends BaseClass {
                         if (data.command === 'serverinfo') {
                             const info = data.info;
                             info.components = this.changeArrayToJsonIfName(info.components);
+                            await this.updateComponentControlsStates(info.components);
                             info.effects = this.changeArrayToJsonIfName(info.effects);
                             await this.library.writeFromJson(this.UDN, 'device.serverinfo', statesObjects, info);
                             await this.cleanTree();
-                        } else if (data.command === 'priorities-update') {
+                        } else if (data.command.endsWith === 'priorities-update') {
                             if (this.ws) {
                                 this.ws.send(
                                     JSON.stringify({
@@ -182,6 +183,28 @@ export class Hyperion extends BaseClass {
                                 (data as PrioritiesUpdateCommand).data.priorities,
                             );*/
                             this.log.debug('Received:', JSON.stringify(data));
+                        } else if (data.command.endsWith('-update')) {
+                            const path = data.command.replace('-update', '');
+                            const info: any = {};
+                            if (path == 'components') {
+                                info.components = this.changeArrayToJsonIfName(data.data);
+                                await this.updateComponentControlsStates(info.components);
+                            } else if (path == 'effects') {
+                                info.effects = this.changeArrayToJsonIfName(data.data);
+                            } else {
+                                if (this.ws) {
+                                    this.ws.send(
+                                        JSON.stringify({
+                                            command: 'serverinfo',
+                                            tan: 1,
+                                        }),
+                                    );
+                                }
+                                return;
+                            }
+
+                            await this.library.writeFromJson(this.UDN, 'device.serverinfo', statesObjects, info);
+                            this.log.debug('Received:', JSON.stringify(data));
                         } else if (data.command === 'sysinfo') {
                             await this.library.writeFromJson(
                                 this.UDN,
@@ -190,7 +213,7 @@ export class Hyperion extends BaseClass {
                                 (data as SysInfoCommand).info,
                             );
                         } else {
-                            await this.updateControlsStates(data);
+                            await this.updateACKControlsStates(data);
                             this.log.debug('Received:', JSON.stringify(data));
                         }
                     }
@@ -328,7 +351,7 @@ export class Hyperion extends BaseClass {
      *
      * @param array array to check
      */
-    changeArrayToJsonIfName(array: any[]): any {
+    changeArrayToJsonIfName(array: any): any {
         const result: { [key: string]: any } | undefined = {};
         let useArray = false;
         if (Array.isArray(array)) {
@@ -338,6 +361,14 @@ export class Hyperion extends BaseClass {
                     result[a.name] = a;
                 }
             }
+        } else if (array.name) {
+            useArray = false;
+            for (const a in array) {
+                if (a === 'name') {
+                    result[array[a]] = array;
+                    return result;
+                }
+            }
         }
         return useArray ? result : array;
     }
@@ -345,8 +376,8 @@ export class Hyperion extends BaseClass {
     async onStateChange(id: string, state: ioBroker.State | null | undefined): Promise<void> {
         if (state) {
             const parts = id.split('.');
-            if (parts.length == 6) {
-                if (parts[3] === 'controls' && parts[4] === 'color' && parts[5] === 'activate') {
+            if (parts && parts.length >= 4 && parts[3] === 'controls') {
+                if (parts.length == 6 && parts[4] === 'color' && parts[5] === 'activate') {
                     if (this.ws) {
                         const values = this.library.getStates(`${this.UDN}.controls.color.`);
                         const command: { [key: string]: boolean | string | number | null | any[] } = {
@@ -371,40 +402,94 @@ export class Hyperion extends BaseClass {
                         }
                         this.ws.send(JSON.stringify({ ...command, tan: 100 }));
                     }
-                }
-            } else if (parts.length == 5 && parts[4] === 'action') {
-                if (this.ws && typeof state.val === 'string') {
-                    try {
-                        const command = JSON.parse(state.val);
-                        command.tan = 220;
-                        this.ws.send(JSON.stringify(command));
-                    } catch {
-                        this.log.warn(`Invalid JSON in ${id}`);
+                } else if (parts.length == 6 && parts[4] === 'sourceselect') {
+                    if (this.ws) {
+                        try {
+                            this.ws.send(
+                                JSON.stringify(
+                                    parts[5] === 'auto'
+                                        ? {
+                                              command: 'sourceselect',
+                                              tan: 100,
+                                              auto: true,
+                                          }
+                                        : {
+                                              command: 'sourceselect',
+                                              tan: 100,
+                                              priority: state.val,
+                                          },
+                                ),
+                            );
+                        } catch {
+                            this.log.warn(`Invalid command from ${id}`);
+                        }
+                    }
+                } else if (parts.length == 6 && parts[4] === 'clear') {
+                    if (this.ws) {
+                        this.ws.send(
+                            JSON.stringify({
+                                command: 'clear',
+                                priority: state.val,
+                                tan: 100,
+                            }),
+                        );
+                    }
+                } else if (parts.length == 6 && parts[4] === 'componentstate') {
+                    if (this.ws) {
+                        this.ws.send(
+                            JSON.stringify({
+                                command: 'componentstate',
+                                componentstate: {
+                                    component: parts[5],
+                                    state: state.val,
+                                },
+                                tan: 90,
+                            }),
+                        );
+                    }
+                } else if (parts.length == 5 && parts[4] === 'action') {
+                    if (this.ws && typeof state.val === 'string') {
+                        try {
+                            const command = JSON.parse(state.val);
+                            command.tan = 220;
+                            this.ws.send(JSON.stringify(command));
+                        } catch {
+                            this.log.warn(`Invalid JSON in ${id}`);
+                        }
                     }
                 }
             }
         }
     }
-    async updateControlsStates(data: any): Promise<void> {
+
+    async updateACKControlsStates(data: any): Promise<void> {
         if (data.success) {
             if (data.tan == 220) {
                 const state = this.library.readdb(`${this.UDN}.controls.action`);
                 if (state !== undefined) {
                     await this.library.writedp(`${this.UDN}.controls.action`, state.val);
                 }
-            } else if (data.command === 'color') {
-                const values = this.library.getStates(`${this.UDN}.controls.color.`);
+            } else if (data.tan == 100) {
+                const values = this.library.getStates(`${this.UDN}.controls.${data.command}.`);
                 for (const k in values) {
                     const v = k as keyof typeof values;
                     if (k.endsWith('activate')) {
+                        await this.library.writedp(k, false);
+                    } else if (k.endsWith('auto')) {
                         await this.library.writedp(k, false);
                     } else {
                         await this.library.writedp(k, values[v]!.val);
                     }
                 }
             }
-        } else {
+        } else if (data.tan >= 100) {
             this.log.warn(`Command ${data.command} failed - JSON: ${JSON.stringify(data)}`);
+        }
+    }
+    async updateComponentControlsStates(data: any): Promise<void> {
+        for (const k in data) {
+            const v = k as keyof typeof data;
+            await this.library.writedp(`${this.UDN}.controls.componentstate.${k}`, data[v].enabled);
         }
     }
 }

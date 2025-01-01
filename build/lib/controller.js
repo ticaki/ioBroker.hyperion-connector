@@ -58,7 +58,7 @@ class Controller extends import_library.BaseClass {
                 enabled: true
               };
               this.log.debug(`Init device: ${device.name} from config`);
-              const hyperion = new import_hyperion.Hyperion(this.adapter, device.UDN, data);
+              const hyperion = new import_hyperion.Hyperion(this.adapter, data.UDN, data);
               this.hyperions.push(hyperion);
               await hyperion.init();
             }
@@ -106,9 +106,9 @@ class Controller extends import_library.BaseClass {
       token: "",
       enabled: true
     };
-    if (this.hyperions.every((h) => h.UDN !== device.device.UDN.replace("uuid:", ""))) {
+    if (this.hyperions.every((h) => h.UDN !== data.UDN)) {
       this.log.info(`Found new hyperion device: ${device.device.friendlyName}`);
-      const hyperion = new import_hyperion.Hyperion(this.adapter, device.device.UDN, data);
+      const hyperion = new import_hyperion.Hyperion(this.adapter, data.UDN, data);
       this.hyperions.push(hyperion);
       await hyperion.init();
     }
@@ -141,7 +141,7 @@ class Controller extends import_library.BaseClass {
         const tid = parts.slice(2).join(".");
         this.library.setdb(tid, "state", state.val, void 0, state.ack, state.ts);
         const instance = parts[2];
-        const hyperion = this.hyperions.find((h) => this.library.cleandp(h.UDN) === instance);
+        const hyperion = this.hyperions.find((h) => h.UDN === instance);
         if (hyperion) {
           await hyperion.onStateChange(id, state);
         }

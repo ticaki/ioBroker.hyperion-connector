@@ -129,7 +129,25 @@ const controlDefaults = {
       duration: 0,
       activate: false
     },
-    action: ""
+    action: "",
+    componentstate: {
+      SMOOTHING: false,
+      BLACKBORDER: false,
+      FORWARDER: false,
+      BOBLIGHTSERVER: false,
+      GRABBER: false,
+      V4L: false,
+      AUDIO: false,
+      LEDDEVICE: false,
+      ALL: false
+    },
+    clear: {
+      priority: 0
+    },
+    sourceselect: {
+      priority: 1,
+      auto: false
+    }
   }
 };
 const statesObjects = {
@@ -150,6 +168,186 @@ const statesObjects = {
           name: "controls.channel"
         },
         native: {}
+      },
+      sourceselect: {
+        _channel: {
+          _id: "",
+          type: "channel",
+          common: {
+            name: "controls.sourceselect"
+          },
+          native: {}
+        },
+        priority: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.sourceselect.source",
+            type: "number",
+            role: "value",
+            read: true,
+            write: true,
+            min: 1,
+            max: 255,
+            step: 1
+          },
+          native: {}
+        },
+        auto: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.sourceselect.auto",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        }
+      },
+      clear: {
+        _channel: {
+          _id: "",
+          type: "channel",
+          common: {
+            name: "controls.clear"
+          },
+          native: {}
+        },
+        priority: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.clear.priority",
+            type: "number",
+            role: "value",
+            read: true,
+            write: true,
+            min: -1,
+            max: 255,
+            step: 1
+          },
+          native: {}
+        }
+      },
+      componentstate: {
+        _channel: {
+          _id: "",
+          type: "channel",
+          common: {
+            name: "controls.componentstate"
+          },
+          native: {}
+        },
+        SMOOTHING: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.SMOOTHING",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        BLACKBORDER: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.BLACKBORDER",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        FORWARDER: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.FORWARDER",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        BOBLIGHTSERVER: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.BOBLIGHTSERVER",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        GRABBER: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.GRABBER",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        V4L: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.V4L",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        AUDIO: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.AUDIO",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        LEDDEVICE: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.LEDDEVICE",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        ALL: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.componentstate.ALL",
+            type: "boolean",
+            role: "switch",
+            read: false,
+            write: true
+          },
+          native: {}
+        }
       },
       action: {
         _id: "",
