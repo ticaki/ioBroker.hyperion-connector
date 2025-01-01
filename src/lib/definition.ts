@@ -40,7 +40,7 @@ export const genericStateObjects: {
     rooms: ioBroker.FolderObject;
     settings: ioBroker.FolderObject;
     global: ioBroker.FolderObject;
-    presense: ioBroker.StateObject;
+    authenticationError: ioBroker.StateObject;
     deviceDB: ioBroker.StateObject;
 } = {
     default: {
@@ -67,13 +67,13 @@ export const genericStateObjects: {
         },
         native: {},
     },
-    presense: {
+    authenticationError: {
         _id: '',
         type: 'state',
         common: {
-            name: 'genericStateObjects.presense',
+            name: 'genericStateObjects.authenticationError',
             type: 'boolean',
-            role: 'text',
+            role: 'indicator',
             read: true,
             write: false,
         },
@@ -97,7 +97,7 @@ export const genericStateObjects: {
         common: {
             name: 'genericStateObjects.online',
             type: 'boolean',
-            role: 'indicator.reachable',
+            role: 'indicator.connected',
             read: true,
             write: false,
         },
@@ -185,6 +185,7 @@ export const statesObjects: statesObjectsType = {
             type: 'device',
             common: {
                 name: 'room.channel',
+                statusStates: { onlineId: '0.connected', errorId: 'hm-rpc.0.AB203424.0.error' },
             },
             native: {},
         },

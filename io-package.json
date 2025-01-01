@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "hyperion-ng2",
-    "version": "0.0.3-alpha.0",
+    "version": "0.0.3",
     "news": {
+      "0.0.3": {
+        "en": "add info.connection for adapter and device",
+        "de": "info.connection für adapter und gerät hinzufügen",
+        "ru": "добавить info.connect для адаптера и устройства",
+        "pt": "adicionar info.connection para adaptador e dispositivo",
+        "nl": "info.connectie voor adapter en apparaat toevoegen",
+        "fr": "ajouter info.connection pour adaptateur et appareil",
+        "it": "aggiungere info.connection per adattatore e dispositivo",
+        "es": "añadir info.conexión para adaptador y dispositivo",
+        "pl": "dodaj info.connection dla adaptera i urządzenia",
+        "uk": "додати інформацію.connection для адаптера і пристрою",
+        "zh-cn": "为适配器和设备添加信息.连接"
+      },
       "0.0.3-alpha.0": {
         "en": "initial release",
         "de": "erstausstrahlung",

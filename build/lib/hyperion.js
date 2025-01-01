@@ -96,11 +96,13 @@ class Hyperion extends import_library.BaseClass {
       _id: "",
       type: "device",
       common: {
-        name: this.description ? this.description.device.friendlyName : this.name
+        name: this.description ? this.description.device.friendlyName : this.name,
+        statusStates: { onlineId: "online", errorId: "error" }
       },
       native: {}
     });
     await this.library.writeFromJson(this.UDN, "device", import_definition.statesObjects, import_definition.controlDefaults, false, true);
+    await this.library.writedp(`${this.UDN}.authenticationError`, false, import_definition.genericStateObjects.authenticationError);
     this.adapter.subscribeStates(`${this.library.cleandp(`${this.UDN}.controls`)}.*`);
     if (this.token === void 0 || this.token.length < 36) {
       const obj = await this.adapter.getObjectAsync(this.UDN);
@@ -294,6 +296,11 @@ class Hyperion extends import_library.BaseClass {
               }
               this.log.error("Not authorized");
               this.connectionState = "notAuthorize";
+              await this.library.writedp(
+                `${this.UDN}.authenticationError`,
+                true,
+                import_definition.genericStateObjects.online
+              );
               this.onUnload();
               return;
             } else if (data.command === "serverinfo") {

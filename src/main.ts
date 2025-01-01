@@ -14,7 +14,7 @@ import type { configOfHyperionInstance } from './lib/types-d';
 /**
  * Represents the HyperionNg2 adapter.
  */
-export class HyperionNg2 extends utils.Adapter {
+class HyperionNg2 extends utils.Adapter {
     library: Library;
     controller: Controller;
     sendToTimeout: ioBroker.Timeout | undefined = undefined;
@@ -144,3 +144,5 @@ if (require.main !== module) {
     // otherwise start the instance directly
     (() => new HyperionNg2())();
 }
+
+export = HyperionNg2;

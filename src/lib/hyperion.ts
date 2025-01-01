@@ -77,10 +77,12 @@ export class Hyperion extends BaseClass {
             type: 'device',
             common: {
                 name: this.description ? this.description.device.friendlyName : this.name,
+                statusStates: { onlineId: 'online', errorId: 'error' },
             },
             native: {},
         });
         await this.library.writeFromJson(this.UDN, 'device', statesObjects, controlDefaults, false, true);
+        await this.library.writedp(`${this.UDN}.authenticationError`, false, genericStateObjects.authenticationError);
         this.adapter.subscribeStates(`${this.library.cleandp(`${this.UDN}.controls`)}.*`);
 
         if (this.token === undefined || this.token.length < 36) {
@@ -314,6 +316,11 @@ export class Hyperion extends BaseClass {
                             }
                             this.log.error('Not authorized');
                             this.connectionState = 'notAuthorize';
+                            await this.library.writedp(
+                                `${this.UDN}.authenticationError`,
+                                true,
+                                genericStateObjects.online,
+                            );
                             this.onUnload();
                             return;
                         } else if (data.command === 'serverinfo') {

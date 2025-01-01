@@ -2,7 +2,7 @@ import _fs from 'fs';
 import type { statesObjectsType } from './definition';
 // eslint-disable-next-line
 import { genericStateObjects } from './definition';
-import type { HyperionNg2 } from '../main';
+import type HyperionNg2 from '../main';
 
 // only change this for other adapters
 export type AdapterClassDefinition = HyperionNg2;
