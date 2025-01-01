@@ -19,14 +19,13 @@ Connect to hyperion.ng server.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.0.2-alpha.0 (2025-01-01)
 * (ticaki) initial release
 
 ## License
 MIT License
 
-Copyright (c) 2024 ticaki <github@renopoint.de>
+Copyright (c) 2025 ticaki <github@renopoint.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
