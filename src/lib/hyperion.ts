@@ -98,9 +98,23 @@ export class Hyperion extends BaseClass {
      * @param isOnline set the online state.
      */
     setOnline(isOnline: boolean): void {
-        this.library.writedp(`${this.UDN}.online`, isOnline, genericStateObjects.online).catch(() => {
-            // nothing to do
-        });
+        if (isOnline && this.connectionState !== 'connected') {
+            this.connectionState = 'connected';
+            this.adapter.controller.setOnline().catch(() => {
+                // nothing to do
+            });
+            this.library.writedp(`${this.UDN}.online`, isOnline, genericStateObjects.online).catch(() => {
+                // nothing to do
+            });
+        } else if (!isOnline && this.connectionState !== 'disconnected') {
+            this.connectionState = 'disconnected';
+            this.adapter.controller.setOnline().catch(() => {
+                // nothing to do
+            });
+            this.library.writedp(`${this.UDN}.online`, isOnline, genericStateObjects.online).catch(() => {
+                // nothing to do
+            });
+        }
     }
 
     /**
@@ -184,7 +198,7 @@ export class Hyperion extends BaseClass {
                             // if authorize-login or authorize-tokenRequired with required false we start the connection
                             if (data.command === 'authorize-login' && data.success === true) {
                                 this.log.info('Login successful');
-                                this.connectionState = 'connected';
+                                this.setOnline(true);
                                 this.aliveReset();
                                 if (this.ws) {
                                     this.ws.send(
@@ -208,7 +222,8 @@ export class Hyperion extends BaseClass {
                                 data.info.required === false
                             ) {
                                 this.log.info('No Login required');
-                                this.connectionState = 'connected';
+
+                                this.setOnline(true);
                                 this.aliveReset();
                                 if (this.ws) {
                                     this.ws.send(
@@ -368,8 +383,12 @@ export class Hyperion extends BaseClass {
             this.ws.addEventListener('close', () => {
                 this.log.info('Connection closed');
                 this.ws = undefined;
+
                 if (this.connectionState !== 'notAuthorize') {
+                    this.aliveReset(false);
                     this.delayReconnect();
+                } else {
+                    this.setOnline(false);
                 }
             });
 
@@ -464,7 +483,6 @@ export class Hyperion extends BaseClass {
      */
     aliveReset(stop: boolean = false): void {
         //this.log.debug('Reset alive check');
-        this.setOnline(true);
         if (this.aliveCheckTimeout) {
             this.adapter.clearTimeout(this.aliveCheckTimeout);
         }

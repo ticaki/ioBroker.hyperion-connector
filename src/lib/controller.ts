@@ -68,7 +68,7 @@ export class Controller extends BaseClass {
                         (c: configOfHyperionInstance) => c.UDN !== item.UDN,
                     ),
                 ) || [];
-            const pendingAuthorize = this.hyperions.filter(item => item.connectionState === 'pendingAuthorize') || [];
+
             const disconnected =
                 this.hyperions.filter(
                     item => item.connectionState === 'disconnected' || item.connectionState === 'notAuthorize',
@@ -76,7 +76,7 @@ export class Controller extends BaseClass {
 
             this.log.info(
                 `Init done - found devices: online: ${this.hyperions.length - disconnected.length} - disconnected: ${disconnected.length} - configured: ${Array.isArray(this.adapter.config.devices) ? this.adapter.config.devices.length : 0} 
-                - not configured: ${notConfigured.length} - pending authorize: ${pendingAuthorize.length}`,
+                - not configured: ${notConfigured.length}`,
             );
             if (this.hyperions.length === 0) {
                 this.log.warn('Init done - no devices found - please start at least one hyperion-server.');
@@ -90,6 +90,16 @@ export class Controller extends BaseClass {
                 this.adapter.clearInterval(this.initLogInterval);
             }
         }, 5000);
+    }
+    async setOnline(): Promise<void> {
+        let connected = 0;
+        for (const hyperion of this.hyperions) {
+            connected += hyperion.connectionState === 'connected' ? 1 : 0;
+        }
+
+        this.library.writedp(`info.connection`, connected !== 0).catch(() => {
+            // nothing to do
+        });
     }
 
     /**

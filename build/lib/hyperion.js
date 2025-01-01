@@ -116,8 +116,19 @@ class Hyperion extends import_library.BaseClass {
    * @param isOnline set the online state.
    */
   setOnline(isOnline) {
-    this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch(() => {
-    });
+    if (isOnline && this.connectionState !== "connected") {
+      this.connectionState = "connected";
+      this.adapter.controller.setOnline().catch(() => {
+      });
+      this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch(() => {
+      });
+    } else if (!isOnline && this.connectionState !== "disconnected") {
+      this.connectionState = "disconnected";
+      this.adapter.controller.setOnline().catch(() => {
+      });
+      this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch(() => {
+      });
+    }
   }
   /**
    * createWebsocketConnectionToHyperion
@@ -175,7 +186,7 @@ class Hyperion extends import_library.BaseClass {
               this.log.debug("Received:", JSON.stringify(data));
               if (data.command === "authorize-login" && data.success === true) {
                 this.log.info("Login successful");
-                this.connectionState = "connected";
+                this.setOnline(true);
                 this.aliveReset();
                 if (this.ws) {
                   this.ws.send(
@@ -195,7 +206,7 @@ class Hyperion extends import_library.BaseClass {
                 }
               } else if (data.command === "authorize-tokenRequired" && data.info && data.info.required === false) {
                 this.log.info("No Login required");
-                this.connectionState = "connected";
+                this.setOnline(true);
                 this.aliveReset();
                 if (this.ws) {
                   this.ws.send(
@@ -343,7 +354,10 @@ class Hyperion extends import_library.BaseClass {
         this.log.info("Connection closed");
         this.ws = void 0;
         if (this.connectionState !== "notAuthorize") {
+          this.aliveReset(false);
           this.delayReconnect();
+        } else {
+          this.setOnline(false);
         }
       });
       this.ws.addEventListener("error", async (error) => {
@@ -429,7 +443,6 @@ class Hyperion extends import_library.BaseClass {
    * @param stop stop the alive check
    */
   aliveReset(stop = false) {
-    this.setOnline(true);
     if (this.aliveCheckTimeout) {
       this.adapter.clearTimeout(this.aliveCheckTimeout);
     }
