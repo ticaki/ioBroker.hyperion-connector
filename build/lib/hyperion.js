@@ -533,6 +533,16 @@ class Hyperion extends import_library.BaseClass {
             }
             this.ws.send(JSON.stringify({ ...command, tan: 100 }));
           }
+        } else if (parts.length == 6 && parts[4] === "system") {
+          if (this.ws) {
+            this.ws.send(
+              JSON.stringify({
+                command: parts[4],
+                subcommand: parts[5],
+                tan: 100
+              })
+            );
+          }
         } else if (parts.length == 6 && parts[4] === "sourceselect") {
           if (this.ws) {
             try {
@@ -593,17 +603,22 @@ class Hyperion extends import_library.BaseClass {
   async updateACKControlsStates(data) {
     if (data.success) {
       if (data.tan == 220) {
+        this.log.debug(`Command ${data.command} successful - JSON: ${JSON.stringify(data)}`);
         const state = this.library.readdb(`${this.UDN}.controls.action`);
         if (state !== void 0) {
           await this.library.writedp(`${this.UDN}.controls.action`, state.val);
         }
       } else if (data.tan == 100) {
-        const values = this.library.getStates(`${this.UDN}.controls.${data.command}.`);
+        const commands = data.command.split("-");
+        this.log.debug(`Command ${commands[0]} successful - JSON: ${JSON.stringify(data)}`);
+        const values = this.library.getStates(`${this.UDN}.controls.${commands[0]}.`);
         for (const k in values) {
           const v = k;
-          if (k.endsWith("activate")) {
+          if (commands[0] == "color" && k.endsWith("activate")) {
             await this.library.writedp(k, false);
-          } else if (k.endsWith("auto")) {
+          } else if (commands[0] == "sourceselect" && k.endsWith("auto")) {
+            await this.library.writedp(k, false);
+          } else if (commands[0] == "system") {
             await this.library.writedp(k, false);
           } else {
             await this.library.writedp(k, values[v].val);

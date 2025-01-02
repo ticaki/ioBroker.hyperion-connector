@@ -19,6 +19,9 @@ Connect to hyperion.ng server. Hyperion Projekt https://hyperion-project.org/for
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (ticaki) added controls.system
+
 ### 0.0.3 (2025-01-01)
 * (ticaki) add info.connection for adapter and device
 

@@ -147,6 +147,14 @@ const controlDefaults = {
     sourceselect: {
       priority: 1,
       auto: false
+    },
+    system: {
+      suspend: false,
+      resume: false,
+      toggleSuspend: false,
+      idle: false,
+      toggleIdle: false,
+      restart: false
     }
   }
 };
@@ -427,6 +435,88 @@ const statesObjects = {
           type: "state",
           common: {
             name: "control.color.activate",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        }
+      },
+      system: {
+        _channel: {
+          _id: "",
+          type: "channel",
+          common: {
+            name: "controls.system"
+          },
+          native: {}
+        },
+        suspend: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.system.suspend",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        resume: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.system.resume",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        toggleSuspend: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.system.toggleSuspend",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        idle: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.system.idle",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        toggleIdle: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.system.toggleIdle",
+            type: "boolean",
+            role: "button",
+            read: false,
+            write: true
+          },
+          native: {}
+        },
+        restart: {
+          _id: "",
+          type: "state",
+          common: {
+            name: "controls.system.restart",
             type: "boolean",
             role: "button",
             read: false,
