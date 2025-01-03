@@ -9,9 +9,9 @@
   "homepage": "https://github.com/ticaki/ioBroker.hyperion-ng2",
   "license": "MIT",
   "keywords": [
-    "iobroker",
+    "ioBroker",
     "hyperion-ng",
-    "led"
+    "leds"
   ],
   "repository": {
     "type": "git",
