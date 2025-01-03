@@ -328,6 +328,19 @@ export class Hyperion extends BaseClass {
                             info.components = this.changeArrayToJsonIfName(info.components);
                             await this.updateComponentControlsStates(info.components);
                             info.effects = this.changeArrayToJsonIfName(info.effects);
+                            await this.library.writedp(
+                                `${this.UDN}.priorities.json`,
+                                JSON.stringify(info.priorities),
+                                genericStateObjects.json,
+                            );
+                            await this.library.writedp(
+                                `${this.UDN}.leds.json`,
+                                JSON.stringify(info.leds),
+                                genericStateObjects.json,
+                            );
+
+                            //delete useless leds states
+                            delete info.leds;
                             await this.library.writeFromJson(this.UDN, 'device.serverinfo', statesObjects, info);
                             await this.cleanTree();
                         } else if (data.command.endsWith === 'priorities-update') {
@@ -339,11 +352,17 @@ export class Hyperion extends BaseClass {
                                     }),
                                 );
                             }
+                            //maybe this work with 2.0.17
                             /*await this.library.writeFromJson(
                                 this.UDN,
                                 'device.serverinfo.priorities',
                                 statesObjects,
                                 (data as PrioritiesUpdateCommand).data.priorities,
+                            );
+                            await this.library.writedp(
+                                `${this.UDN}.priorities.json`,
+                                JSON.stringify((data as PrioritiesUpdateCommand).data.priorities),
+                                genericStateObjects.json,
                             );*/
                             this.log.debug('Received:', JSON.stringify(data));
                         } else if (data.command.endsWith('-update')) {
@@ -354,6 +373,12 @@ export class Hyperion extends BaseClass {
                                 await this.updateComponentControlsStates(info.components);
                             } else if (path == 'effects') {
                                 info.effects = this.changeArrayToJsonIfName(data.data);
+                            } else if (path == 'leds') {
+                                await this.library.writedp(
+                                    `${this.UDN}.leds.json`,
+                                    JSON.stringify(data.data),
+                                    genericStateObjects.json,
+                                );
                             } else {
                                 if (this.ws) {
                                     this.ws.send(

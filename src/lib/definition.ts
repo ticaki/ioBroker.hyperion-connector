@@ -37,7 +37,7 @@ export const genericStateObjects: {
     default: ioBroker.StateObject;
     customString: ioBroker.StateObject;
     online: ioBroker.StateObject;
-    rooms: ioBroker.FolderObject;
+    json: ioBroker.StateObject;
     settings: ioBroker.FolderObject;
     global: ioBroker.FolderObject;
     authenticationError: ioBroker.StateObject;
@@ -103,11 +103,15 @@ export const genericStateObjects: {
         },
         native: {},
     },
-    rooms: {
+    json: {
         _id: '',
-        type: 'folder',
+        type: 'state',
         common: {
-            name: 'rooms.folder',
+            name: 'genericStateObjects.json',
+            type: 'string',
+            role: 'json',
+            read: true,
+            write: false,
         },
         native: {},
     },

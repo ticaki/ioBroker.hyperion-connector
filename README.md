@@ -29,6 +29,10 @@ Dann mache ich ihn noch schön.
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
+* (ticaki) Incoming updates for leds are handled (most updates force a complete update of the data unless I have added code to handle - leds, components, effects so far)
+* (ticaki) Added a json data point for priorities to allow better access from the javascript adapter
+* (ticaki) Added leds update handling
+* (ticaki) remove leds subfolders and write all data into a json datapoint (-500 folder/states for me)
 * (ticaki) added controls.system
 
 ### 0.0.3 (2025-01-01)

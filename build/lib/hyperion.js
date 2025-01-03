@@ -308,6 +308,17 @@ class Hyperion extends import_library.BaseClass {
               info.components = this.changeArrayToJsonIfName(info.components);
               await this.updateComponentControlsStates(info.components);
               info.effects = this.changeArrayToJsonIfName(info.effects);
+              await this.library.writedp(
+                `${this.UDN}.priorities.json`,
+                JSON.stringify(info.priorities),
+                import_definition.genericStateObjects.json
+              );
+              await this.library.writedp(
+                `${this.UDN}.leds.json`,
+                JSON.stringify(info.leds),
+                import_definition.genericStateObjects.json
+              );
+              delete info.leds;
               await this.library.writeFromJson(this.UDN, "device.serverinfo", import_definition.statesObjects, info);
               await this.cleanTree();
             } else if (data.command.endsWith === "priorities-update") {
@@ -328,6 +339,12 @@ class Hyperion extends import_library.BaseClass {
                 await this.updateComponentControlsStates(info.components);
               } else if (path == "effects") {
                 info.effects = this.changeArrayToJsonIfName(data.data);
+              } else if (path == "leds") {
+                await this.library.writedp(
+                  `${this.UDN}.leds.json`,
+                  JSON.stringify(data.data),
+                  import_definition.genericStateObjects.json
+                );
               } else {
                 if (this.ws) {
                   this.ws.send(
