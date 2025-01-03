@@ -7,7 +7,9 @@
     "controls.action": "JSON-Befehl",
     "controls.channel": "Befehle werden an den Server gesendet",
     "devices": "Geräte",
-    "enabled": "Ermöglicht",
+    "enabled": "Aktiviert",
     "getDevices": "Geräte aktualisieren",
-    "hyperion-ng2 adapter settings": "Adaptereinstellungen für hyperion-ng2"
+    "hyperion-ng2 adapter settings": "Adaptereinstellungen für hyperion-ng2",
+    "reconnectTime": "Wiederverbindungsintervall",
+    "reconnectTime_tooltip": "Zeit in Sekunden, die gewartet werden muss, bevor versucht wird, die Verbindung zum Server wiederherzustellen (Min.: 3 Sekunden)"
 }

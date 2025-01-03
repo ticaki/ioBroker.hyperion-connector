@@ -42,6 +42,7 @@ export const genericStateObjects: {
     global: ioBroker.FolderObject;
     authenticationError: ioBroker.StateObject;
     deviceDB: ioBroker.StateObject;
+    checkOnline: ioBroker.StateObject;
 } = {
     default: {
         _id: 'No_definition',
@@ -128,6 +129,18 @@ export const genericStateObjects: {
         type: 'folder',
         common: {
             name: 'settings.global',
+        },
+        native: {},
+    },
+    checkOnline: {
+        _id: '',
+        type: 'state',
+        common: {
+            name: 'genericStateObjects.checkOnline',
+            type: 'boolean',
+            role: 'switch',
+            read: true,
+            write: true,
         },
         native: {},
     },

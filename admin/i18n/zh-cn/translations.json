@@ -9,5 +9,7 @@
     "devices": "设备",
     "enabled": "启用",
     "getDevices": "刷新设备",
-    "hyperion-ng2 adapter settings": "hyperion-ng2的适配器设置"
+    "hyperion-ng2 adapter settings": "hyperion-ng2的适配器设置",
+    "reconnectTime": "重连间隔",
+    "reconnectTime_tooltip": "尝试重新连接到服务器之前等待的时间（以秒为单位）（分钟：3 秒）"
 }

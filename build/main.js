@@ -50,6 +50,22 @@ class HyperionNg2 extends utils.Adapter {
    */
   async onReady() {
     this.config.activateSsdp = true;
+    let reconnectTimeFailed = false;
+    if (this.config.reconnectTime === void 0) {
+      reconnectTimeFailed = true;
+    } else if (typeof this.config.reconnectTime !== "number") {
+      reconnectTimeFailed = true;
+      this.log.warn(`Reconnect interval is not a number, setting to default value 60`);
+    } else if (this.config.reconnectTime < 3) {
+      reconnectTimeFailed = true;
+      this.log.warn(`Reconnect interval is less than 3, setting to default value 60`);
+    } else if (this.config.reconnectTime > 3600) {
+      this.log.warn(`Reconnect interval is greater than 1h. Are you sure?`);
+    }
+    if (reconnectTimeFailed) {
+      this.config.reconnectTime = 60;
+    }
+    this.log.info(`Reconnect interval is set to ${this.config.reconnectTime} seconds`);
     await this.setState("info.connection", false, true);
     setTimeout(async () => {
       await this.library.init();

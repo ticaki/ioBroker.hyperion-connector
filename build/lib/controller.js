@@ -76,8 +76,8 @@ class Controller extends import_library.BaseClass {
         return;
       }
       const notConfigured = this.hyperions.filter(
-        (item) => (this.adapter.config.devices || [{ UDN: null }]).some(
-          (c) => c.UDN !== item.UDN
+        (item) => !(this.adapter.config.devices || [{ UDN: null }]).some(
+          (c) => c.UDN === item.UDN
         )
       ) || [];
       const disconnected = this.hyperions.filter(

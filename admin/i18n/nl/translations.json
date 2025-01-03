@@ -9,5 +9,7 @@
     "devices": "Apparaten",
     "enabled": "Ingeschakeld",
     "getDevices": "Apparaten vernieuwen",
-    "hyperion-ng2 adapter settings": "Adapterinstellingen voor hyperion-ng2"
+    "hyperion-ng2 adapter settings": "Adapterinstellingen voor hyperion-ng2",
+    "reconnectTime": "Interval opnieuw verbinden",
+    "reconnectTime_tooltip": "Wachttijd in seconden voordat opnieuw verbinding met de server wordt gemaakt (min: 3s)"
 }

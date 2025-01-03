@@ -9,5 +9,7 @@
     "devices": "Пристрої",
     "enabled": "Увімкнено",
     "getDevices": "Оновити пристрої",
-    "hyperion-ng2 adapter settings": "Налаштування адаптера для hyperion-ng2"
+    "hyperion-ng2 adapter settings": "Налаштування адаптера для hyperion-ng2",
+    "reconnectTime": "Інтервал повторного підключення",
+    "reconnectTime_tooltip": "Час очікування в секундах перед повторним підключенням до сервера (хв.: 3 с)"
 }

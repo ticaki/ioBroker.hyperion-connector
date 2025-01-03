@@ -9,5 +9,7 @@
     "devices": "Devices",
     "enabled": "Enabled",
     "getDevices": "Refresh Devices",
-    "hyperion-ng2 adapter settings": "Adapter settings for hyperion-ng2"
+    "hyperion-ng2 adapter settings": "Adapter settings for hyperion-ng2",
+    "reconnectTime":"Reconnect interval",
+    "reconnectTime_tooltip":"Time in seconds to wait before trying to reconnect to the server (min: 3s)"
 }

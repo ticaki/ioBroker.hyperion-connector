@@ -29,6 +29,7 @@ Dann mache ich ihn noch schön.
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
+* (ticaki) Adjustable reconnection interval. State to activate accelerated reconnection
 * (ticaki) Incoming updates for leds are handled (most updates force a complete update of the data unless I have added code to handle - leds, components, effects so far)
 * (ticaki) Added a json data point for priorities to allow better access from the javascript adapter
 * (ticaki) Added leds update handling

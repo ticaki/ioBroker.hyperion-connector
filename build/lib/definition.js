@@ -122,6 +122,18 @@ const genericStateObjects = {
       name: "settings.global"
     },
     native: {}
+  },
+  checkOnline: {
+    _id: "",
+    type: "state",
+    common: {
+      name: "genericStateObjects.checkOnline",
+      type: "boolean",
+      role: "switch",
+      read: true,
+      write: true
+    },
+    native: {}
   }
 };
 const controlDefaults = {

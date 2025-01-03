@@ -8,6 +8,7 @@ declare global {
 			option2: string;
 
             activateSsdp: boolean;
+            reconnectTime: number;
             devices: configOfHyperionInstance[];
 		}
 	}

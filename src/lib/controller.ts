@@ -63,10 +63,11 @@ export class Controller extends BaseClass {
             }
 
             const notConfigured =
-                this.hyperions.filter(item =>
-                    (this.adapter.config.devices || [{ UDN: null }]).some(
-                        (c: configOfHyperionInstance) => c.UDN !== item.UDN,
-                    ),
+                this.hyperions.filter(
+                    item =>
+                        !(this.adapter.config.devices || [{ UDN: null }]).some(
+                            (c: configOfHyperionInstance) => c.UDN === item.UDN,
+                        ),
                 ) || [];
 
             const disconnected =

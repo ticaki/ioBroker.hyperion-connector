@@ -15,6 +15,9 @@ export class Hyperion extends BaseClass {
     port: number = 0;
     token: string | undefined = undefined;
 
+    reconnectTime: number = 30000;
+    fastReconnect: number | undefined = undefined;
+
     ws: WebSocket | undefined;
 
     delayTimeout: ioBroker.Timeout | undefined;
@@ -39,6 +42,10 @@ export class Hyperion extends BaseClass {
         this.ip = config.ip;
         this.port = config.port;
         this.token = config.token;
+        this.reconnectTime = this.adapter.config.reconnectTime * 1000;
+        this.log.debug(
+            `Create Hyperion instance ${this.UDN} with ${this.ip}:${this.port} and ${this.protocol}. Reconnect time: ${this.reconnectTime / 1000}s`,
+        );
     }
 
     checkHyperionVersion(): void {
@@ -167,6 +174,8 @@ export class Hyperion extends BaseClass {
                 if (this.description) {
                     this.log.info(`Connected to ${this.description.device.friendlyName}`);
                 }
+                this.fastReconnect = undefined;
+                await this.library.writedp(`${this.UDN}.controls.checkOnline`, false, genericStateObjects.checkOnline);
                 if (this.ws) {
                     this.ws.send(
                         JSON.stringify({
@@ -418,6 +427,11 @@ export class Hyperion extends BaseClass {
 
                 if (this.connectionState !== 'notAuthorize') {
                     this.aliveReset(false);
+                    this.library
+                        .writedp(`${this.UDN}.controls.checkOnline`, false, genericStateObjects.checkOnline)
+                        .catch(() => {
+                            // nothing to do
+                        });
                     this.delayReconnect();
                 } else {
                     this.setOnline(false);
@@ -464,11 +478,25 @@ export class Hyperion extends BaseClass {
         this.library.writedp(`${this.UDN}.online`, false, genericStateObjects.online).catch(() => {
             this.log.error('Error in writedp');
         });
-        this.delayTimeout = this.adapter.setTimeout(() => {
-            this.reconnect().catch(() => {
-                // nothing to do
-            });
-        }, 15000);
+
+        // reset fast reconnect if time is over
+        if (this.fastReconnect !== undefined && this.fastReconnect <= new Date().getTime()) {
+            this.fastReconnect = undefined;
+            this.library
+                .writedp(`${this.UDN}.controls.checkOnline`, false, genericStateObjects.checkOnline)
+                .catch(() => {
+                    // nothing to do
+                });
+        }
+        this.delayTimeout = this.adapter.setTimeout(
+            () => {
+                this.reconnect().catch(() => {
+                    // nothing to do
+                });
+            },
+            // fast reconnect if time is not over
+            this.fastReconnect !== undefined && this.fastReconnect > new Date().getTime() ? 1000 : this.reconnectTime,
+        );
     }
 
     /**
@@ -666,6 +694,29 @@ export class Hyperion extends BaseClass {
                         } catch {
                             this.log.warn(`Invalid JSON in ${id}`);
                         }
+                    }
+                } else if (parts.length == 5 && parts[4] === 'checkOnline') {
+                    if (!this.ws && this.connectionState === 'disconnected' && state.val === true) {
+                        this.fastReconnect = new Date().getTime() + 30000;
+                        this.delayReconnect();
+                        return;
+                    }
+                    this.fastReconnect = undefined;
+                    await this.library.writedp(
+                        `${this.UDN}.controls.checkOnline`,
+                        false,
+                        genericStateObjects.checkOnline,
+                    );
+                    if (state.val === true) {
+                        this.log.warn(
+                            `Dont use this state just for fun :) ${
+                                this.ws
+                                    ? 'Server is online must be offline! '
+                                    : this.connectionState === 'notAuthorize'
+                                      ? 'The reason for being offline is a failed login, a faster reconnection is not possible!'
+                                      : ''
+                            }`,
+                        );
                     }
                 }
             }

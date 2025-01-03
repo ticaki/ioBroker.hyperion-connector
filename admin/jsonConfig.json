@@ -19,68 +19,82 @@
 					"lg": 12,
                     "xl": 12
 				},
-            "devices":{
-                "type": "table",
-                "label": "devices",
-                "items": [
-                    {
-                        "type": "checkbox",
-                        "attr": "enabled",
-                        "title": "enabled",
-                        "width": "5%",
-                        "default": true
-                    },
-                    {
-                        "type": "text",
-                        "attr": "name",
-                        "title": "ServerName",
-                        "readOnly": true,
-                        "disabled": "true"
-                    },
-                    {
-                        "type": "select",
-                        "attr": "protocol",
-                        "title": "ServerProtocol", 
-                        "validator": "data.ServerProtocol !== ''",
-                        "validatorNoSaveOnError": true,  
-                        "width": "5%",
-                        "options": [
-                            {
-                                "label": "http://",
-                                "value": "http:"
-                            },
-                            {
-                                "label": "https://",
-                                "value": "https:"
-                            }
-                        ],
-                        "default": "http:"
-                    },
-                    {
-                        "type": "text",
-                        "attr": "ip",
-                        "title": "ServerIP",
-                        "validator": "data.ip !== ''",
-                        "validatorNoSaveOnError": true 
-                    },
-                    {
-                        "type": "number",
-                        "attr": "port",
-                        "title": "ServerPort",
-                        "validator": "data.port>0 && data.port<65536",
-                        "validatorNoSaveOnError": true,
-                        "width": "7%",
-                        "default": 8090
-                    },
-                    
-                    {
-                        "type": "text",
-                        "attr": "token",
-                        "title": "Token",
-                        "allowEmpty": true
-                    }
-                ]
+        "devices":{
+            "type": "table",
+            "label": "devices",
+            "items": [
+                {
+                    "type": "checkbox",
+                    "attr": "enabled",
+                    "title": "enabled",
+                    "width": "5%",
+                    "default": true
+                },
+                {
+                    "type": "text",
+                    "attr": "name",
+                    "title": "ServerName",
+                    "readOnly": true,
+                    "disabled": "true"
+                },
+                {
+                    "type": "select",
+                    "attr": "protocol",
+                    "title": "ServerProtocol", 
+                    "validator": "data.ServerProtocol !== ''",
+                    "validatorNoSaveOnError": true,  
+                    "width": "5%",
+                    "options": [
+                        {
+                            "label": "http://",
+                            "value": "http:"
+                        },
+                        {
+                            "label": "https://",
+                            "value": "https:"
+                        }
+                    ],
+                    "default": "http:"
+                },
+                {
+                    "type": "text",
+                    "attr": "ip",
+                    "title": "ServerIP",
+                    "validator": "data.ip !== ''",
+                    "validatorNoSaveOnError": true 
+                },
+                {
+                    "type": "number",
+                    "attr": "port",
+                    "title": "ServerPort",
+                    "validator": "data.port>0 && data.port<65536",
+                    "validatorNoSaveOnError": true,
+                    "width": "7%",
+                    "default": 8090
+                },
+                
+                {
+                    "type": "text",
+                    "attr": "token",
+                    "title": "Token",
+                    "allowEmpty": true
                 }
-            }
+            ]
+        },
+        "reconnectTime": {
+            "type": "number",
+            "label": "reconnectTime",
+            "unit": "s",
+            "tooltip": "reconnectTime_tooltip",
+            "min": 3,
+            "default": 60,
+            "xs": 12,
+            "sm": 8,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        }
+    }
+            
   
 }

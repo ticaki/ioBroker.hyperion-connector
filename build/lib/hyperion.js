@@ -41,6 +41,8 @@ class Hyperion extends import_library.BaseClass {
   protocol = "";
   port = 0;
   token = void 0;
+  reconnectTime = 3e4;
+  fastReconnect = void 0;
   ws;
   delayTimeout;
   aliveTimeout;
@@ -62,6 +64,10 @@ class Hyperion extends import_library.BaseClass {
     this.ip = config.ip;
     this.port = config.port;
     this.token = config.token;
+    this.reconnectTime = this.adapter.config.reconnectTime * 1e3;
+    this.log.debug(
+      `Create Hyperion instance ${this.UDN} with ${this.ip}:${this.port} and ${this.protocol}. Reconnect time: ${this.reconnectTime / 1e3}s`
+    );
   }
   checkHyperionVersion() {
     if (!this.description) {
@@ -171,6 +177,8 @@ class Hyperion extends import_library.BaseClass {
         if (this.description) {
           this.log.info(`Connected to ${this.description.device.friendlyName}`);
         }
+        this.fastReconnect = void 0;
+        await this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline);
         if (this.ws) {
           this.ws.send(
             JSON.stringify({
@@ -379,6 +387,8 @@ class Hyperion extends import_library.BaseClass {
         this.ws = void 0;
         if (this.connectionState !== "notAuthorize") {
           this.aliveReset(false);
+          this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch(() => {
+          });
           this.delayReconnect();
         } else {
           this.setOnline(false);
@@ -421,10 +431,19 @@ class Hyperion extends import_library.BaseClass {
     this.library.writedp(`${this.UDN}.online`, false, import_definition.genericStateObjects.online).catch(() => {
       this.log.error("Error in writedp");
     });
-    this.delayTimeout = this.adapter.setTimeout(() => {
-      this.reconnect().catch(() => {
+    if (this.fastReconnect !== void 0 && this.fastReconnect <= (/* @__PURE__ */ new Date()).getTime()) {
+      this.fastReconnect = void 0;
+      this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch(() => {
       });
-    }, 15e3);
+    }
+    this.delayTimeout = this.adapter.setTimeout(
+      () => {
+        this.reconnect().catch(() => {
+        });
+      },
+      // fast reconnect if time is not over
+      this.fastReconnect !== void 0 && this.fastReconnect > (/* @__PURE__ */ new Date()).getTime() ? 1e3 : this.reconnectTime
+    );
   }
   /**
    * check if the connection is alive
@@ -612,6 +631,23 @@ class Hyperion extends import_library.BaseClass {
             } catch {
               this.log.warn(`Invalid JSON in ${id}`);
             }
+          }
+        } else if (parts.length == 5 && parts[4] === "checkOnline") {
+          if (!this.ws && this.connectionState === "disconnected" && state.val === true) {
+            this.fastReconnect = (/* @__PURE__ */ new Date()).getTime() + 3e4;
+            this.delayReconnect();
+            return;
+          }
+          this.fastReconnect = void 0;
+          await this.library.writedp(
+            `${this.UDN}.controls.checkOnline`,
+            false,
+            import_definition.genericStateObjects.checkOnline
+          );
+          if (state.val === true) {
+            this.log.warn(
+              `Dont use this state just for fun :) ${this.ws ? "Server is online must be offline! " : this.connectionState === "notAuthorize" ? "The reason for being offline is a failed login, a faster reconnection is not possible!" : ""}`
+            );
           }
         }
       }
