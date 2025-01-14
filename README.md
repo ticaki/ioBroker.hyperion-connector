@@ -1,14 +1,14 @@
-![Logo](admin/hyperion-ng2.png)
-# ioBroker.hyperion-ng2
+![Logo](admin/hyperion-connector.png)
+# ioBrokerhyperion-connector
 
-[![NPM version](https://img.shields.io/npm/v/iobroker.hyperion-ng2.svg)](https://www.npmjs.com/package/iobroker.hyperion-ng2)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.hyperion-ng2.svg)](https://www.npmjs.com/package/iobroker.hyperion-ng2)
+[![NPM version](https://img.shields.io/npm/v/iobrokerhyperion-connector.svg)](https://www.npmjs.com/package/iobrokerhyperion-connector)
+[![Downloads](https://img.shields.io/npm/dm/iobrokerhyperion-connector.svg)](https://www.npmjs.com/package/iobrokerhyperion-connector)
 ![Number of Installations](https://iobroker.live/badges/hyperion-ng2-installed.svg)
 ![Current version in stable repository](https://iobroker.live/badges/hyperion-ng2-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobroker.hyperion-ng2.png?downloads=true)](https://nodei.co/npm/iobroker.hyperion-ng2/)
+[![NPM](https://nodei.co/npm/iobrokerhyperion-connector.png?downloads=true)](https://nodei.co/npm/iobrokerhyperion-connector/)
 
-**Tests:** ![Test and Release](https://github.com/ticaki/ioBroker.hyperion-ng2/workflows/Test%20and%20Release/badge.svg)
+**Tests:** ![Test and Release](https://github.com/ticaki/ioBrokerhyperion-connector/workflows/Test%20and%20Release/badge.svg)
 
 ## hyperion-ng2 adapter for ioBroker
 
