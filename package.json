@@ -1,12 +1,12 @@
 {
-  "name": "iobroker.hyperion-ng2",
+  "name": "iobroker.hyperion-connector",
   "version": "0.0.4",
   "description": "Connect to hyperion.ng server.",
   "author": {
     "name": "ticaki",
     "email": "github@renopoint.de"
   },
-  "homepage": "https://github.com/ticaki/ioBroker.hyperion-ng2",
+  "homepage": "https://github.com/ticaki/ioBroker.hyperion-connector",
   "license": "MIT",
   "keywords": [
     "ioBroker",
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:ticaki/ioBroker.hyperion-ng2.git"
+    "url": "git@github.com:ticaki/ioBroker.hyperion-connector.git"
   },
   "engines": {
     "node": ">= 20"
@@ -82,7 +82,7 @@
     "release": "release-script"
   },
   "bugs": {
-    "url": "https://github.com/ticaki/ioBroker.hyperion-ng2/issues"
+    "url": "https://github.com/ticaki/ioBroker.hyperion-connector/issues"
   },
   "readmeFilename": "README.md"
 }
