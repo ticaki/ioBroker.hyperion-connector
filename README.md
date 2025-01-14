@@ -28,21 +28,15 @@ Dann mache ich ihn noch schön.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### 0.0.4 (2025-01-03)
+### 0.1.0 (2025-01-14)
 * (ticaki) Adjustable reconnection interval. State to activate accelerated reconnection
 * (ticaki) Incoming updates for leds are handled (most updates force a complete update of the data unless I have added code to handle - leds, components, effects so far)
 * (ticaki) Added a json data point for priorities to allow better access from the javascript adapter
 * (ticaki) Added leds update handling
 * (ticaki) remove leds subfolders and write all data into a json datapoint (-500 folder/states for me)
 * (ticaki) added controls.system
-
-### 0.0.3 (2025-01-01)
 * (ticaki) add info.connection for adapter and device
-
-### 0.0.3-alpha.0 (2025-01-01)
 * (ticaki) initial release
-
-### 0.0.2-alpha.0 (2025-01-01)
 * (ticaki) initial release
 
 ## License
