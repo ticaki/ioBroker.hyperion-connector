@@ -276,7 +276,7 @@ export class Hyperion extends BaseClass {
                                                 JSON.stringify({
                                                     command: 'authorize',
                                                     subcommand: 'requestToken',
-                                                    comment: 'Iobroker hyperion-ng2',
+                                                    comment: 'Iobroker HyperionConnector',
                                                     id: 'io341',
                                                 }),
                                             );

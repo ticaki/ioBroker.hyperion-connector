@@ -12,22 +12,22 @@ import type { configOfHyperionInstance } from './lib/types-d';
 // Load your modules here, e.g.:
 // import * as fs from "fs";
 /**
- * Represents the HyperionNg2 adapter.
+ * Represents the HyperionController adapter.
  */
-class HyperionNg2 extends utils.Adapter {
+class HyperionController extends utils.Adapter {
     library: Library;
     controller: Controller;
     sendToTimeout: ioBroker.Timeout | undefined = undefined;
 
     /**
-     * Creates an instance of HyperionNg2.
+     * Creates an instance of HyperionController.
      *
      * @param [options] - The adapter options.
      */
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
-            name: 'hyperion-ng2',
+            name: 'hyperion-connector',
         });
         this.library = new Library(this);
         this.controller = new Controller(this);
@@ -155,10 +155,10 @@ class HyperionNg2 extends utils.Adapter {
 
 if (require.main !== module) {
     // Export the constructor in compact mode
-    module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new HyperionNg2(options);
+    module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new HyperionController(options);
 } else {
     // otherwise start the instance directly
-    (() => new HyperionNg2())();
+    (() => new HyperionController())();
 }
 
-export = HyperionNg2;
+export = HyperionController;

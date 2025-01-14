@@ -3,14 +3,14 @@
 
 [![NPM version](https://img.shields.io/npm/v/iobrokerhyperion-connector.svg)](https://www.npmjs.com/package/iobrokerhyperion-connector)
 [![Downloads](https://img.shields.io/npm/dm/iobrokerhyperion-connector.svg)](https://www.npmjs.com/package/iobrokerhyperion-connector)
-![Number of Installations](https://iobroker.live/badges/hyperion-ng2-installed.svg)
-![Current version in stable repository](https://iobroker.live/badges/hyperion-ng2-stable.svg)
+![Number of Installations](https://iobroker.live/badges/hyperion-connector-installed.svg)
+![Current version in stable repository](https://iobroker.live/badges/hyperion-connector-stable.svg)
 
 [![NPM](https://nodei.co/npm/iobrokerhyperion-connector.png?downloads=true)](https://nodei.co/npm/iobrokerhyperion-connector/)
 
 **Tests:** ![Test and Release](https://github.com/ticaki/ioBrokerhyperion-connector/workflows/Test%20and%20Release/badge.svg)
 
-## hyperion-ng2 adapter for ioBroker
+## hyperion-connector adapter for ioBroker
 
 Connect to hyperion.ng server. Hyperion Projekt https://hyperion-project.org/forum/
 
@@ -28,7 +28,8 @@ Dann mache ich ihn noch schön.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### 0.1.0 (2025-01-14)
+### **WORK IN PROGRESS**
+* (ticaki) Renaming repo
 * (ticaki) Adjustable reconnection interval. State to activate accelerated reconnection
 * (ticaki) Incoming updates for leds are handled (most updates force a complete update of the data unless I have added code to handle - leds, components, effects so far)
 * (ticaki) Added a json data point for priorities to allow better access from the javascript adapter

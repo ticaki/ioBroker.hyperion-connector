@@ -24,19 +24,19 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_library = require("./lib/library");
 var import_controller = require("./lib/controller");
-class HyperionNg2 extends utils.Adapter {
+class HyperionController extends utils.Adapter {
   library;
   controller;
   sendToTimeout = void 0;
   /**
-   * Creates an instance of HyperionNg2.
+   * Creates an instance of HyperionController.
    *
    * @param [options] - The adapter options.
    */
   constructor(options = {}) {
     super({
       ...options,
-      name: "hyperion-ng2"
+      name: "hyperion-connector"
     });
     this.library = new import_library.Library(this);
     this.controller = new import_controller.Controller(this);
@@ -155,9 +155,9 @@ class HyperionNg2 extends utils.Adapter {
   }
 }
 if (require.main !== module) {
-  module.exports = (options) => new HyperionNg2(options);
+  module.exports = (options) => new HyperionController(options);
 } else {
-  (() => new HyperionNg2())();
+  (() => new HyperionController())();
 }
-module.exports = HyperionNg2;
+module.exports = HyperionController;
 //# sourceMappingURL=main.js.map
