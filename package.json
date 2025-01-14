@@ -1,6 +1,6 @@
 {
   "name": "iobroker.hyperion-connector",
-  "version": "0.0.4",
+  "version": "0.1.1",
   "description": "Connect to hyperion.ng server.",
   "author": {
     "name": "ticaki",

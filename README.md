@@ -28,7 +28,7 @@ Dann mache ich ihn noch schön.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.1.1 (2025-01-14)
 * (ticaki) Renaming repo
 * (ticaki) Adjustable reconnection interval. State to activate accelerated reconnection
 * (ticaki) Incoming updates for leds are handled (most updates force a complete update of the data unless I have added code to handle - leds, components, effects so far)
