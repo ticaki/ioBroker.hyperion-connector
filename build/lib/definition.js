@@ -209,7 +209,7 @@ const statesObjects = {
           common: {
             name: "controls.sourceselect.source",
             type: "number",
-            role: "value",
+            role: "level",
             read: true,
             write: true,
             min: 1,
@@ -246,7 +246,7 @@ const statesObjects = {
           common: {
             name: "controls.clear.priority",
             type: "number",
-            role: "value",
+            role: "level",
             read: true,
             write: true,
             min: -1,
@@ -401,7 +401,7 @@ const statesObjects = {
           common: {
             name: "control.color.color",
             type: "array",
-            role: "value",
+            role: "list",
             read: true,
             write: true
           },
@@ -413,7 +413,7 @@ const statesObjects = {
           common: {
             name: "control.color.priority",
             type: "number",
-            role: "value",
+            role: "level",
             read: true,
             write: true,
             min: 1,
@@ -440,7 +440,7 @@ const statesObjects = {
           common: {
             name: "control.color.duration",
             type: "number",
-            role: "value",
+            role: "level",
             read: true,
             write: true
           },
