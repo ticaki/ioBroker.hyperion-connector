@@ -6,7 +6,7 @@
 ![Number of Installations](https://iobroker.live/badges/hyperion-connector-installed.svg)
 ![Current version in stable repository](https://iobroker.live/badges/hyperion-connector-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobrokerhyperion-connector.png?downloads=true)](https://nodei.co/npm/iobroker.hyperion-connector/)
+[![NPM](https://nodei.co/npm/iobroker.hyperion-connector.png?downloads=true)](https://nodei.co/npm/iobroker.hyperion-connector/)
 
 **Tests:** ![Test and Release](https://github.com/ticaki/ioBroker.hyperion-connector/workflows/Test%20and%20Release/badge.svg)
 
