@@ -84,7 +84,6 @@
         "reconnectTime": {
             "type": "number",
             "label": "reconnectTime",
-            "unit": "s",
             "tooltip": "reconnectTime_tooltip",
             "min": 3,
             "default": 60,

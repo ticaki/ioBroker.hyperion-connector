@@ -28,6 +28,10 @@ Dann mache ich ihn noch schön.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (ticaki) remove unit from admin
+* (ticaki) reduced version requirements for js-controller
+
 ### 0.1.1 (2025-01-14)
 * (ticaki) Renaming repo
 * (ticaki) Adjustable reconnection interval. State to activate accelerated reconnection
