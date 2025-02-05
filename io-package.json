@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "hyperion-connector",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "news": {
+      "0.1.2": {
+        "en": "remove unit from admin\nreduced version requirements for js-controller",
+        "de": "entfernen einheit von admin\nreduzierte versionsanforderungen für js-controller",
+        "ru": "удалить блок из admin\nуменьшенные требования к версии для js-controller",
+        "pt": "remover unidade de admin\nrequisitos de versão reduzida para js-controller",
+        "nl": "eenheid uit admin verwijderen\nverminderde versievereisten voor js-controller",
+        "fr": "supprimer l'unité de l'administration\nexigences de version réduite pour js-controller",
+        "it": "rimuovere l'unità da admin\nrequisiti di versione ridotta per js-controller",
+        "es": "eliminar unidad de administración\nrequerimientos de versión reducidos para js-controller",
+        "pl": "usunąć urządzenie z admin\nzmniejszone wymagania wersji dla sterownika js-",
+        "uk": "видалити блок з адміністратора\nзнижені вимоги до версії js-controller",
+        "zh-cn": "从管理员中删除单位\njs控制器的版本需求减少"
+      },
       "0.1.1": {
         "en": "Renaming repo\nAdjustable reconnection interval. State to activate accelerated reconnection\nIncoming updates for leds are handled (most updates force a complete update of the data unless I have added code to handle - leds, components, effects so far)\nAdded a json data point for priorities to allow better access from the javascript adapter\nAdded leds update handling\nremove leds subfolders and write all data into a json datapoint (-500 folder/states for me)\nadded controls.system\nadd info.connection for adapter and device\ninitial release\ninitial release",
         "de": "Renaming Repo\nEinstellbares Umschaltungsintervall. Staat zur Aktivierung einer beschleunigten Wiederverbindung\nEingehende Updates für LEDs werden bearbeitet (die meisten Updates zwingen ein vollständiges Update der Daten, es sei denn, ich habe den Code hinzugefügt, um zu handhaben - LEDs, Komponenten, Effekte bisher)\nHinzufügen eines json-Datenpunktes für Prioritäten, um einen besseren Zugriff vom Javascript-Adapter zu ermöglichen\nHinzugefügt führtes Update Handling\nentfernen von leds unterordner und schreiben sie alle daten in einen json-datenpunkt (-500 ordner / zustände für mich)\nzusätzliche kontrollen. system\ninfo.connection für adapter und gerät hinzufügen\nerstausstrahlung\nerstausstrahlung",
