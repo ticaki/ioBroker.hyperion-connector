@@ -1,5 +1,5 @@
 ![Logo](admin/hyperion-connector.png)
-# ioBrokerhyperion-connector
+# ioBroker.hyperion-connector
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.hyperion-connector.svg)](https://www.npmjs.com/package/iobroker.hyperion-connector)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.hyperion-connector.svg)](https://www.npmjs.com/package/iobroker.hyperion-connector)
