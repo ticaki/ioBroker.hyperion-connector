@@ -23,7 +23,7 @@
   "dependencies": {
     "@achingbrain/ssdp": "^4.2.1",
     "@iobroker/adapter-core": "^3.2.3",
-    "fast-xml-parser": "^4.5.1",
+    "fast-xml-parser": "^5.2.1",
     "node-ssdp": "^4.0.1",
     "ws": "^8.18.1"
   },
