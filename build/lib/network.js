@@ -61,7 +61,7 @@ class Network extends import_library.BaseClass {
   /**
    *  doDiscovery
    *
-   * @param callback
+   * @param callback callback function
    */
   async doDiscovery(callback) {
     this.log.debug(`Searching for service: ${this.serviceType}`);

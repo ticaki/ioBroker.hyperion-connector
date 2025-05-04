@@ -28,6 +28,9 @@ Dann mache ich ihn noch schön.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (ticaki) update deps
+
 ### 0.1.2 (2025-02-05)
 * (ticaki) remove unit from admin
 * (ticaki) reduced version requirements for js-controller

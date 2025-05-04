@@ -37,7 +37,7 @@ export class Network extends BaseClass {
     /**
      *  doDiscovery
      *
-     * @param callback
+     * @param callback callback function
      */
     async doDiscovery(
         callback: (protocol: string, ip: string, port: number, device: DescriptionType) => Promise<void>,
