@@ -21,7 +21,7 @@
     "node": ">= 20"
   },
   "dependencies": {
-    "@achingbrain/ssdp": "^4.2.1",
+    "@achingbrain/ssdp": "^4.2.2",
     "@iobroker/adapter-core": "^3.2.3",
     "fast-xml-parser": "^4.5.1",
     "node-ssdp": "^4.0.1",
