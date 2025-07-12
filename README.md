@@ -29,6 +29,7 @@ Dann mache ich ihn noch schön.
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
+* (ticaki) workaround for buggy subscribe in 2.1.1 (maybe adapter only work with 2.1.1)
 * (ticaki) update deps
 
 ### 0.1.2 (2025-02-05)

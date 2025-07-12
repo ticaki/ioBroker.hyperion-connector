@@ -221,7 +221,8 @@ export class Hyperion extends BaseClass {
                                     this.ws.send(
                                         JSON.stringify({
                                             command: 'serverinfo',
-                                            subscribe: ['all'],
+                                            subcommand: 'subscribe',
+                                            subscribe: [],
                                             tan: 1,
                                         }),
                                     );
@@ -246,7 +247,7 @@ export class Hyperion extends BaseClass {
                                     this.ws.send(
                                         JSON.stringify({
                                             command: 'serverinfo',
-                                            subscribe: ['all'],
+                                            subscribe: [],
                                             tan: 1,
                                         }),
                                     );

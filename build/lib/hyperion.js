@@ -208,7 +208,8 @@ class Hyperion extends import_library.BaseClass {
                   this.ws.send(
                     JSON.stringify({
                       command: "serverinfo",
-                      subscribe: ["all"],
+                      subcommand: "subscribe",
+                      subscribe: [],
                       tan: 1
                     })
                   );
@@ -228,7 +229,7 @@ class Hyperion extends import_library.BaseClass {
                   this.ws.send(
                     JSON.stringify({
                       command: "serverinfo",
-                      subscribe: ["all"],
+                      subscribe: [],
                       tan: 1
                     })
                   );
