@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "hyperion-connector",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "news": {
+      "0.2.0": {
+        "en": "controls: adjustment added\nworkaround for buggy subscribe in 2.1.1 (maybe adapter only work with 2.1.1)\nupdate deps",
+        "de": "steuerungen: adjustment hinzugefügt\nworkaround für buggy abonnieren in 2.1.1 (  hyperion min. 2.1.1)\nupdate deps",
+        "ru": "элементы управления: добавленная корректировка\nобходной путь для подписки на багги в 2.1.1 (возможно, адаптер работает только с 2.1.1)\nобновление deps",
+        "pt": "controlos: ajustamento adicionado\nsolução alternativa para buggy se inscrever em 2.1.1 (talvez o adaptador só funcione com 2.1.1)\natualizar deps",
+        "nl": "controles: aanpassing toegevoegd\nworkaround voor buggy abonneren in 2.1.1 (misschien werkt adapter alleen met 2.1.1)\nupdate deps",
+        "fr": "contrôles: réglage ajouté\nsolution de rechange pour buggy s'abonner en 2.1.1 (peut-être l'adaptateur ne fonctionne que avec 2.1.1)\nmettre à jour les deps",
+        "it": "controlli: regolazione aggiunta\nworkaround per abbonamenti buggy 2.1.1 (forse adattatore solo lavorare con 2.1.1)\naggiornamento dep",
+        "es": "controles: ajuste añadido\nsolución para buggy subscribir en 2.1.1 (quizás el adaptador solo trabaja con 2.1.1)\nactualización de los deps",
+        "pl": "kontrole: dodano dostosowanie\npraca dla buggy subskrybować w 2.1.1 (może adapter tylko z 2.1.1)\naktualizacje deps",
+        "uk": "контроль: додано налаштування\nworkaround for буггі підписатися на 2.1.1 (можливо адаптер працює тільки з 2.1.1)\nоновлення deps",
+        "zh-cn": "控件: 添加的调整\n2.1.1中的buggy用户的绕行工作(可能仅与2.1.1的适配器工作)\n更新代码"
+      },
       "0.1.2": {
         "en": "remove unit from admin\nreduced version requirements for js-controller",
         "de": "entfernen einheit von admin\nreduzierte versionsanforderungen für js-controller",

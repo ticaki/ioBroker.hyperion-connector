@@ -28,7 +28,7 @@ Dann mache ich ihn noch schön.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.2.0 (2025-10-27)
 * (ticaki) controls: adjustment added
 * (ticaki) workaround for buggy subscribe in 2.1.1 (maybe adapter only work with 2.1.1)
 * (ticaki) update deps
