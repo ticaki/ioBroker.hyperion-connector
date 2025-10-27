@@ -246,7 +246,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [255, 0, 0]
           },
           native: {}
         },
@@ -259,7 +259,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [0, 255, 0]
           },
           native: {}
         },
@@ -272,7 +272,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [0, 0, 255]
           },
           native: {}
         },
@@ -285,7 +285,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [255, 255, 0]
           },
           native: {}
         },
@@ -298,7 +298,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [0, 255, 255]
           },
           native: {}
         },
@@ -311,7 +311,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [255, 0, 255]
           },
           native: {}
         },
@@ -324,7 +324,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: [255, 255, 255]
           },
           native: {}
         },
@@ -340,7 +340,7 @@ const statesObjects = {
             min: 0,
             max: 100,
             step: 1,
-            def: 100
+            def: 75
           },
           native: {}
         },
@@ -356,7 +356,7 @@ const statesObjects = {
             min: 0,
             max: 10,
             step: 0.1,
-            def: 0
+            def: 1
           },
           native: {}
         },
@@ -388,7 +388,7 @@ const statesObjects = {
             min: 0,
             max: 10,
             step: 0.1,
-            def: 0
+            def: 1
           },
           native: {}
         },
@@ -403,7 +403,7 @@ const statesObjects = {
             write: true,
             min: 1e3,
             max: 4e4,
-            def: 6500
+            def: 6600
           },
           native: {}
         },
@@ -419,7 +419,7 @@ const statesObjects = {
             min: 0,
             max: 100,
             step: 1,
-            def: 50
+            def: 0
           },
           native: {}
         },
@@ -448,7 +448,7 @@ const statesObjects = {
             min: 0.1,
             max: 5,
             step: 0.1,
-            def: 1
+            def: 2.2
           },
           native: {}
         },
@@ -464,7 +464,7 @@ const statesObjects = {
             min: 0.1,
             max: 5,
             step: 0.1,
-            def: 1
+            def: 2.2
           },
           native: {}
         },
@@ -480,7 +480,7 @@ const statesObjects = {
             min: 0.1,
             max: 5,
             step: 0.1,
-            def: 1
+            def: 2.2
           },
           native: {}
         },
@@ -493,7 +493,7 @@ const statesObjects = {
             role: "text",
             read: true,
             write: true,
-            def: ""
+            def: "cwi"
           },
           native: {}
         }
