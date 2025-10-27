@@ -285,7 +285,7 @@ class Library extends BaseClass {
       _id: def ? def._id : "",
       type: def && def.type != "channel" ? "device" : "channel",
       common: {
-        name: def && def.common && def.common.name ? def.common.name : id && id.split(".").length > 2 ? id.split(".").pop() || "no definition" : "no definition"
+        name: def && def.common && def.common.name ? def.common.name : id && id.split(".").length > 1 ? id.split(".").pop() || "no definition" : "no definition"
       },
       native: def && def.native || {}
     };

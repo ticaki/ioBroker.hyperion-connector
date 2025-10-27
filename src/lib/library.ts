@@ -309,7 +309,7 @@ export class Library extends BaseClass {
                 name:
                     def && def.common && def.common.name
                         ? def.common.name
-                        : id && id.split('.').length > 2
+                        : id && id.split('.').length > 1
                           ? id.split('.').pop() || 'no definition'
                           : 'no definition',
             },

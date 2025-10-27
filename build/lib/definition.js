@@ -206,16 +206,6 @@ const statesObjects = {
       },
       native: {}
     },
-    system: {
-      _channel: {
-        _id: "",
-        type: "channel",
-        common: {
-          name: ""
-        },
-        native: {}
-      }
-    },
     controls: {
       _channel: {
         _id: "",

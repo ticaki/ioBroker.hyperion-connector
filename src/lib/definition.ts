@@ -154,7 +154,6 @@ export type statesObjectsType = {
         description: ChangeTypeToChannelAndState<DescriptionType>;
         serverinfo: ChangeTypeToChannelAndState<ServerInfoForStatesType>;
         sysinfo: ChangeTypeToChannelAndState<SysInfoInfo>;
-        system: customChannelType;
         controls: {
             color: { [key: string]: ioBroker.StateObject } | customChannelType;
             adjustment:
@@ -249,16 +248,7 @@ export const statesObjects: statesObjectsType = {
             },
             native: {},
         },
-        system: {
-            _channel: {
-                _id: '',
-                type: 'channel',
-                common: {
-                    name: '',
-                },
-                native: {},
-            },
-        },
+        
 
         controls: {
             _channel: {
