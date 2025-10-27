@@ -246,7 +246,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [255, 0, 0]
+            def: JSON.stringify([255, 0, 0])
           },
           native: {}
         },
@@ -259,7 +259,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 255, 0]
+            def: JSON.stringify([0, 255, 0])
           },
           native: {}
         },
@@ -272,7 +272,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 255]
+            def: JSON.stringify([0, 0, 255])
           },
           native: {}
         },
@@ -285,7 +285,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [255, 255, 0]
+            def: JSON.stringify([255, 255, 0])
           },
           native: {}
         },
@@ -298,7 +298,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 255, 255]
+            def: JSON.stringify([0, 255, 255])
           },
           native: {}
         },
@@ -311,7 +311,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [255, 0, 255]
+            def: JSON.stringify([255, 0, 255])
           },
           native: {}
         },
@@ -324,7 +324,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [255, 255, 255]
+            def: JSON.stringify([255, 255, 255])
           },
           native: {}
         },
@@ -723,7 +723,7 @@ const statesObjects = {
             role: "list",
             read: true,
             write: true,
-            def: [0, 0, 0]
+            def: JSON.stringify([0, 0, 0])
           },
           native: {}
         },
