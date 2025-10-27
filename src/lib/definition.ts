@@ -1,4 +1,4 @@
-import type { DescriptionType, ServerInfoForStatesType, SysInfoInfo } from './types-d';
+import type { AdjustmentControlsType, DescriptionType, ServerInfoForStatesType, SysInfoInfo } from './types-d';
 
 export type ChangeTypeToChannelAndState5<Obj> = Obj extends object
     ? {
@@ -48,7 +48,7 @@ export const genericStateObjects: {
         _id: 'No_definition',
         type: 'state',
         common: {
-            name: 'genericStateObjects.state',
+            name: '',
             type: 'string',
             role: 'text',
             read: true,
@@ -60,7 +60,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'state',
         common: {
-            name: 'genericStateObjects.deviceDB',
+            name: '',
             type: 'string',
             role: 'json',
             read: true,
@@ -72,7 +72,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'state',
         common: {
-            name: 'genericStateObjects.authenticationError',
+            name: '',
             type: 'boolean',
             role: 'indicator',
             read: true,
@@ -84,7 +84,7 @@ export const genericStateObjects: {
         _id: 'User_State',
         type: 'state',
         common: {
-            name: 'genericStateObjects.customString',
+            name: '',
             type: 'string',
             role: 'text',
             read: true,
@@ -96,7 +96,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'state',
         common: {
-            name: 'genericStateObjects.online',
+            name: '',
             type: 'boolean',
             role: 'indicator.connected',
             read: true,
@@ -108,7 +108,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'state',
         common: {
-            name: 'genericStateObjects.json',
+            name: '',
             type: 'string',
             role: 'json',
             read: true,
@@ -120,7 +120,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'folder',
         common: {
-            name: 'settings.folder',
+            name: '',
         },
         native: {},
     },
@@ -128,7 +128,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'folder',
         common: {
-            name: 'settings.global',
+            name: '',
         },
         native: {},
     },
@@ -136,7 +136,7 @@ export const genericStateObjects: {
         _id: '',
         type: 'state',
         common: {
-            name: 'genericStateObjects.checkOnline',
+            name: '',
             type: 'boolean',
             role: 'switch',
             read: true,
@@ -154,8 +154,12 @@ export type statesObjectsType = {
         description: ChangeTypeToChannelAndState<DescriptionType>;
         serverinfo: ChangeTypeToChannelAndState<ServerInfoForStatesType>;
         sysinfo: ChangeTypeToChannelAndState<SysInfoInfo>;
+        system: customChannelType;
         controls: {
             color: { [key: string]: ioBroker.StateObject } | customChannelType;
+            adjustment:
+                | ({ [key in keyof AdjustmentControlsType]: ioBroker.StateObject } & { activate: ioBroker.StateObject })
+                | customChannelType;
             action: ioBroker.StateObject;
             componentstate: { [key: string]: ioBroker.StateObject } | customChannelType;
             clear: { [key: string]: ioBroker.StateObject } | customChannelType;
@@ -210,6 +214,27 @@ export const controlDefaults = {
             toggleIdle: false,
             restart: false,
         },
+        adjustment: {
+            activate: false,
+            red: [0, 0, 0],
+            green: [0, 0, 0],
+            blue: [0, 0, 0],
+            yellow: [0, 0, 0],
+            cyan: [0, 0, 0],
+            magenta: [0, 0, 0],
+            white: [0, 0, 0],
+            brightness: 50,
+            brightnessGain: 1.0,
+            brightnessCompensation: 0,
+            saturationGain: 1.0,
+            temperature: 6500,
+            backlightThreshold: 50,
+            backlightColored: false,
+            gammaRed: 1.0,
+            gammaGreen: 1.0,
+            gammaBlue: 1.0,
+            id: '',
+        },
     },
 };
 
@@ -219,10 +244,20 @@ export const statesObjects: statesObjectsType = {
             _id: '',
             type: 'device',
             common: {
-                name: 'room.channel',
+                name: '',
                 statusStates: { onlineId: '0.connected', errorId: 'hm-rpc.0.AB203424.0.error' },
             },
             native: {},
+        },
+        system: {
+            _channel: {
+                _id: '',
+                type: 'channel',
+                common: {
+                    name: '',
+                },
+                native: {},
+            },
         },
 
         controls: {
@@ -230,16 +265,299 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'channel',
                 common: {
-                    name: 'controls.channel',
+                    name: '',
                 },
                 native: {},
+            },
+            adjustment: {
+                _channel: {
+                    _id: '',
+                    type: 'channel',
+                    common: {
+                        name: '',
+                    },
+                    native: {},
+                },
+                activate: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'boolean',
+                        role: 'button',
+                        read: false,
+                        write: true,
+                        def: false,
+                    },
+                    native: {},
+                },
+                red: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                green: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                blue: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                yellow: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                cyan: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                magenta: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                white: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'array',
+                        role: 'list',
+                        read: true,
+                        write: true,
+                        def: [0, 0, 0],
+                    },
+                    native: {},
+                },
+                brightness: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 100,
+                        step: 1,
+                        def: 100,
+                    },
+                    native: {},
+                },
+                brightnessGain: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 10.0,
+                        step: 0.1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                brightnessCompensation: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 100,
+                        step: 1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                saturationGain: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 10.0,
+                        step: 0.1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                temperature: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 1000,
+                        max: 40000,
+                        def: 6500,
+                    },
+                    native: {},
+                },
+                backlightThreshold: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 100,
+                        step: 1,
+                        def: 50,
+                    },
+                    native: {},
+                },
+                backlightColored: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'boolean',
+                        role: 'switch',
+                        read: true,
+                        write: true,
+                        def: false,
+                    },
+                    native: {},
+                },
+                gammaRed: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0.1,
+                        max: 5.0,
+                        step: 0.1,
+                        def: 1.0,
+                    },
+                    native: {},
+                },
+                gammaGreen: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0.1,
+                        max: 5.0,
+                        step: 0.1,
+                        def: 1.0,
+                    },
+                    native: {},
+                },
+                gammaBlue: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0.1,
+                        max: 5.0,
+                        step: 0.1,
+                        def: 1.0,
+                    },
+                    native: {},
+                },
+                id: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'string',
+                        role: 'text',
+                        read: true,
+                        write: true,
+                        def: '',
+                    },
+                    native: {},
+                },
             },
             sourceselect: {
                 _channel: {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'controls.sourceselect',
+                        name: '',
                     },
                     native: {},
                 },
@@ -247,14 +565,15 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.sourceselect.source',
+                        name: '',
                         type: 'number',
                         role: 'level',
                         read: true,
                         write: true,
-                        min: 1,
+                        min: 0,
                         max: 255,
                         step: 1,
+                        def: 1,
                     },
                     native: {},
                 },
@@ -262,11 +581,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.sourceselect.auto',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -276,7 +596,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'controls.clear',
+                        name: '',
                     },
                     native: {},
                 },
@@ -284,24 +604,26 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.clear.priority',
+                        name: '',
                         type: 'number',
                         role: 'level',
                         read: true,
                         write: true,
                         min: -1,
-                        max: 255,
+                        max: 253,
                         step: 1,
+                        def: -1,
                     },
                     native: {},
                 },
             },
+            // https://github.com/hyperion-project/hyperion.ng/blob/d75388222a61d8f0587ba276b8949439c23c315d/libsrc/api/JSONRPC_schema/schema-componentstate.json
             componentstate: {
                 _channel: {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'controls.componentstate',
+                        name: '',
                     },
                     native: {},
                 },
@@ -309,11 +631,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.SMOOTHING',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -321,11 +644,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.BLACKBORDER',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -333,11 +657,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.FORWARDER',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -345,11 +670,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.BOBLIGHTSERVER',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -357,11 +683,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.GRABBER',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -374,6 +701,7 @@ export const statesObjects: statesObjectsType = {
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -381,11 +709,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.AUDIO',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -393,11 +722,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.LEDDEVICE',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -405,11 +735,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.componentstate.ALL',
+                        name: '',
                         type: 'boolean',
                         role: 'switch',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -418,11 +749,12 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'controls.action',
+                    name: '',
                     type: 'string',
                     role: 'JSON',
                     read: true,
                     write: true,
+                    def: '{}',
                 },
                 native: {},
             },
@@ -431,19 +763,21 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'control.color',
+                        name: '',
                     },
                     native: {},
                 },
+                // https://github.com/hyperion-project/hyperion.ng/blob/d75388222a61d8f0587ba276b8949439c23c315d/libsrc/api/JSONRPC_schema/schema-color.json
                 color: {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'control.color.color',
+                        name: '',
                         type: 'array',
                         role: 'list',
                         read: true,
                         write: true,
+                        def: [0, 0, 0],
                     },
                     native: {},
                 },
@@ -451,7 +785,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'control.color.priority',
+                        name: '',
                         type: 'number',
                         role: 'level',
                         read: true,
@@ -459,6 +793,7 @@ export const statesObjects: statesObjectsType = {
                         min: 1,
                         max: 255,
                         step: 1,
+                        def: 1,
                     },
                     native: {},
                 },
@@ -466,11 +801,13 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'control.color.origin',
+                        //
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
                         write: true,
+                        def: '',
                     },
                     native: {},
                 },
@@ -478,11 +815,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'control.color.duration',
+                        name: '',
                         type: 'number',
                         role: 'level',
                         read: true,
                         write: true,
+                        def: 0,
                     },
                     native: {},
                 },
@@ -490,7 +828,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'control.color.activate',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
@@ -499,12 +837,13 @@ export const statesObjects: statesObjectsType = {
                     native: {},
                 },
             },
+            // https://github.com/hyperion-project/hyperion.ng/blob/d75388222a61d8f0587ba276b8949439c23c315d/libsrc/api/JSONRPC_schema/schema-system.json
             system: {
                 _channel: {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'controls.system',
+                        name: '',
                     },
                     native: {},
                 },
@@ -512,11 +851,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.system.suspend',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -524,11 +864,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.system.resume',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -536,11 +877,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.system.toggleSuspend',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -548,11 +890,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.system.idle',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -560,11 +903,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.system.toggleIdle',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -572,11 +916,12 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'controls.system.restart',
+                        name: '',
                         type: 'boolean',
                         role: 'button',
                         read: false,
                         write: true,
+                        def: false,
                     },
                     native: {},
                 },
@@ -588,7 +933,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'channel',
                 common: {
-                    name: 'device.description',
+                    name: '',
                 },
                 native: {},
             },
@@ -597,7 +942,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'device.specVersion',
+                        name: '',
                     },
                     native: {},
                 },
@@ -605,7 +950,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.specVersion.minor',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -617,7 +962,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.specVersion.major',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -630,7 +975,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'device.URLBase',
+                    name: '',
                     type: 'string',
                     role: 'text',
                     read: true,
@@ -643,7 +988,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'device',
                     common: {
-                        name: 'room.channel',
+                        name: '',
                     },
                     native: {},
                 },
@@ -651,7 +996,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.device',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -663,7 +1008,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.presentationURL',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -675,7 +1020,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.manufacturer',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -687,7 +1032,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.manufacturerURL',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -699,7 +1044,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.modelDescription',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -711,7 +1056,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.modelName',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -723,7 +1068,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.modelNumber',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -735,7 +1080,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.modelURL',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -747,7 +1092,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.serialNumber',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -759,7 +1104,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.UDN',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -772,7 +1117,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'device.ssdp.ports',
+                            name: '',
                         },
                         native: {},
                     },
@@ -780,7 +1125,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'device.ssdp.ports.jsonServer',
+                            name: '',
                             type: 'number',
                             role: 'value',
                             read: true,
@@ -792,7 +1137,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'device.ssdp.ports.sslServer',
+                            name: '',
                             type: 'number',
                             role: 'value',
                             read: true,
@@ -804,7 +1149,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'device.ssdp.ports.protoBuffer',
+                            name: '',
                             type: 'number',
                             role: 'value',
                             read: true,
@@ -816,7 +1161,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'device.ssdp.ports.flatBuffer',
+                            name: '',
                             type: 'number',
                             role: 'value',
                             read: true,
@@ -830,7 +1175,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'device.ssdp.iconList',
+                            name: '',
                         },
                         native: {},
                     },
@@ -839,7 +1184,7 @@ export const statesObjects: statesObjectsType = {
                             _id: '',
                             type: 'channel',
                             common: {
-                                name: 'device.ssdp.iconList.icon',
+                                name: '',
                             },
                             native: {},
                         },
@@ -847,7 +1192,7 @@ export const statesObjects: statesObjectsType = {
                             _id: '',
                             type: 'state',
                             common: {
-                                name: 'device.ssdp.iconList.icon.mimetype',
+                                name: '',
                                 type: 'string',
                                 role: 'text',
                                 read: true,
@@ -859,7 +1204,7 @@ export const statesObjects: statesObjectsType = {
                             _id: '',
                             type: 'state',
                             common: {
-                                name: 'device.ssdp.iconList.icon.height',
+                                name: '',
                                 type: 'number',
                                 role: 'value',
                                 read: true,
@@ -871,7 +1216,7 @@ export const statesObjects: statesObjectsType = {
                             _id: '',
                             type: 'state',
                             common: {
-                                name: 'device.ssdp.iconList.icon.width',
+                                name: '',
                                 type: 'number',
                                 role: 'value',
                                 read: true,
@@ -883,7 +1228,7 @@ export const statesObjects: statesObjectsType = {
                             _id: '',
                             type: 'state',
                             common: {
-                                name: 'device.ssdp.iconList.icon.depth',
+                                name: '',
                                 type: 'number',
                                 role: 'value',
                                 read: true,
@@ -895,7 +1240,7 @@ export const statesObjects: statesObjectsType = {
                             _id: '',
                             type: 'state',
                             common: {
-                                name: 'device.ssdp.iconList.icon.url',
+                                name: '',
                                 type: 'string',
                                 role: 'text',
                                 read: true,
@@ -909,7 +1254,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'device.ssdp.friendlyName',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -924,7 +1269,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'channel',
                 common: {
-                    name: 'serverinfo.channel',
+                    name: '',
                 },
                 native: {},
             },
@@ -932,7 +1277,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'serverinfo.server.info.activeEffects',
+                    name: '',
                     type: 'string',
                     role: 'text',
                     read: true,
@@ -945,7 +1290,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.activeLedColor',
+                        name: '',
                     },
                     native: {},
                 },
@@ -979,7 +1324,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.adjustment',
+                        name: '',
                     },
                     native: {},
                 },
@@ -987,7 +1332,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.backlightColored',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -999,7 +1344,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.backlightThreshold',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1011,7 +1356,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.blue',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1023,7 +1368,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.brightness',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1035,7 +1380,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.brightnessCompensation',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1047,7 +1392,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.brightnessGain',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1059,7 +1404,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.cyan',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1071,7 +1416,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.gammaBlue',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1083,7 +1428,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.gammaGreen',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1095,7 +1440,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.gammaRed',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1107,7 +1452,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.green',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1119,7 +1464,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.id',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1131,7 +1476,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.magenta',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1143,7 +1488,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.red',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1155,7 +1500,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.saturationGain',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1167,7 +1512,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.white',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1179,7 +1524,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.adjustment.yellow',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1193,7 +1538,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.cec',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1201,7 +1546,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.cec.enabled',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -1215,7 +1560,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.components',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1223,7 +1568,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.components.enabled',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -1235,7 +1580,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.components.name',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1249,7 +1594,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.effects',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1258,7 +1603,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'serverinfo.server.info.effects.args',
+                            name: '',
                         },
                         native: {},
                     },
@@ -1266,7 +1611,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.effects.args.blobs',
+                            name: '',
                             type: 'number',
                             role: 'value',
                             read: true,
@@ -1279,7 +1624,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.effects.file',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1291,7 +1636,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.effects.name',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1303,7 +1648,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.effects.script',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1317,7 +1662,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.grabbers',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1326,7 +1671,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.audio',
+                            name: '',
                         },
                         native: {},
                     },
@@ -1334,7 +1679,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.audio.active',
+                            name: '',
                             type: 'mixed',
                             role: 'text',
                             read: true,
@@ -1346,7 +1691,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.audio.available',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1360,7 +1705,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.screen',
+                            name: '',
                         },
                         native: {},
                     },
@@ -1368,7 +1713,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.screen.active',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1380,7 +1725,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.screen.available',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1394,7 +1739,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.video',
+                            name: '',
                         },
                         native: {},
                     },
@@ -1402,7 +1747,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.video.active',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1414,7 +1759,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.grabbers.video.available',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1428,7 +1773,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'serverinfo.server.info.hostname',
+                    name: '',
                     type: 'string',
                     role: 'text',
                     read: true,
@@ -1440,7 +1785,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'serverinfo.server.info.imageToLedMapping',
+                    name: '',
                     type: 'string',
                     role: 'text',
                     read: true,
@@ -1453,7 +1798,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.instance',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1473,7 +1818,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.instance.instance',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1485,7 +1830,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.instance.running',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -1499,7 +1844,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.ledDevices',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1507,7 +1852,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.ledDevices.available',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1521,7 +1866,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.leds',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1529,7 +1874,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.leds.hmax',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1541,7 +1886,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.leds.hmin',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1553,7 +1898,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.leds.vmax',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1565,7 +1910,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.leds.vmin',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1579,7 +1924,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.priorities',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1587,7 +1932,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.priorities.active',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1599,7 +1944,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.priorities.componentId',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1611,7 +1956,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.priorities.origin',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1623,7 +1968,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.priorities.owner',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1635,7 +1980,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.priorities.priority',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1648,7 +1993,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'channel',
                         common: {
-                            name: 'serverinfo.server.info.priorities.value',
+                            name: '',
                         },
                         native: {},
                     },
@@ -1656,7 +2001,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.priorities.value.HSL',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1668,7 +2013,7 @@ export const statesObjects: statesObjectsType = {
                         _id: '',
                         type: 'state',
                         common: {
-                            name: 'serverinfo.server.info.priorities.value.RGB',
+                            name: '',
                             type: 'string',
                             role: 'text',
                             read: true,
@@ -1681,7 +2026,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.priorities.visible',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -1706,7 +2051,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'serverinfo.server.info.services',
+                    name: '',
                     type: 'string',
                     role: 'text',
                     read: true,
@@ -1719,7 +2064,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'serverinfo.server.info.transform',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1727,7 +2072,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.blacklevel',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1739,7 +2084,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.brightnessGain',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1751,7 +2096,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.gamma',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1763,7 +2108,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.id',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1775,7 +2120,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.luminanceGain',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1787,7 +2132,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.luminanceMinimum',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1799,7 +2144,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.saturationGain',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1811,7 +2156,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.saturationLGain',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1823,7 +2168,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.threshold',
+                        name: '',
                         type: 'number',
                         role: 'value',
                         read: true,
@@ -1835,7 +2180,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'serverinfo.server.info.transform.whitelevel',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1848,7 +2193,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'state',
                 common: {
-                    name: 'serverinfo.server.info.videoMode',
+                    name: '',
                     type: 'string',
                     role: 'text',
                     read: true,
@@ -1862,7 +2207,7 @@ export const statesObjects: statesObjectsType = {
                 _id: '',
                 type: 'channel',
                 common: {
-                    name: 'sysinfo.channel',
+                    name: '',
                 },
                 native: {},
             },
@@ -1871,7 +2216,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'sysinfo.hyperion',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1879,7 +2224,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.build',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1891,7 +2236,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.gitRemote',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1903,7 +2248,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.id',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1915,7 +2260,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.isGuiMode',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -1927,7 +2272,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.readOnlyMode',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -1939,7 +2284,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.rootPath',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1951,7 +2296,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.time',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1963,7 +2308,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.hyperion.version',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1977,7 +2322,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'channel',
                     common: {
-                        name: 'sysinfo.system',
+                        name: '',
                     },
                     native: {},
                 },
@@ -1985,7 +2330,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.arch',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -1997,7 +2342,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.cpuHardware',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2009,7 +2354,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.cpuModelName',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2021,7 +2366,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.cpuModelType',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2033,7 +2378,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.cpuRevision',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2045,7 +2390,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.domainName',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2057,7 +2402,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.hostname',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2069,7 +2414,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.isUserAdmin',
+                        name: '',
                         type: 'boolean',
                         role: 'indicator',
                         read: true,
@@ -2081,7 +2426,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.kernelType',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2093,7 +2438,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.kernelVersion',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2105,7 +2450,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.prettyName',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2117,7 +2462,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.productType',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2129,7 +2474,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.productVersion',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2141,7 +2486,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.pyVersion',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2153,7 +2498,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.qtVersion',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,
@@ -2165,7 +2510,7 @@ export const statesObjects: statesObjectsType = {
                     _id: '',
                     type: 'state',
                     common: {
-                        name: 'sysinfo.system.wordSize',
+                        name: '',
                         type: 'string',
                         role: 'text',
                         read: true,

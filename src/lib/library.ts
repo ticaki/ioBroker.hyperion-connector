@@ -1,6 +1,6 @@
 import _fs from 'fs';
 import type { statesObjectsType } from './definition';
-// eslint-disable-next-line
+
 import { genericStateObjects } from './definition';
 import type HyperionNg2 from '../main';
 
@@ -347,7 +347,11 @@ export class Library extends BaseClass {
             nodeIsNew = true;
             obj._id = `${this.adapter.name}.${this.adapter.instance}.${dp}`;
             if (typeof obj.common.name == 'string') {
-                obj.common.name = await this.getTranslationObj(obj.common.name);
+                if (!obj.common.name || obj.common.name.trim() == '') {
+                    obj.common.name = dp.split('.').pop() || dp;
+                } else {
+                    obj.common.name = await this.getTranslationObj(obj.common.name);
+                }
             }
             if (typeof obj.common.desc == 'string') {
                 obj.common.desc = await this.getTranslationObj(obj.common.desc);
@@ -359,7 +363,11 @@ export class Library extends BaseClass {
             node = this.setdb(dp, obj.type, undefined, stateType, true, Date.now(), obj);
         } else if (node.init && obj) {
             if (typeof obj.common.name == 'string') {
-                obj.common.name = await this.getTranslationObj(obj.common.name);
+                if (!obj.common.name || obj.common.name.trim() == '') {
+                    obj.common.name = dp.split('.').pop() || dp;
+                } else {
+                    obj.common.name = await this.getTranslationObj(obj.common.name);
+                }
             }
             if (typeof obj.common.desc == 'string') {
                 obj.common.desc = await this.getTranslationObj(obj.common.desc);

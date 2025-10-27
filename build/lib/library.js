@@ -313,7 +313,11 @@ class Library extends BaseClass {
       nodeIsNew = true;
       obj._id = `${this.adapter.name}.${this.adapter.instance}.${dp}`;
       if (typeof obj.common.name == "string") {
-        obj.common.name = await this.getTranslationObj(obj.common.name);
+        if (!obj.common.name || obj.common.name.trim() == "") {
+          obj.common.name = dp.split(".").pop() || dp;
+        } else {
+          obj.common.name = await this.getTranslationObj(obj.common.name);
+        }
       }
       if (typeof obj.common.desc == "string") {
         obj.common.desc = await this.getTranslationObj(obj.common.desc);
@@ -325,7 +329,11 @@ class Library extends BaseClass {
       node = this.setdb(dp, obj.type, void 0, stateType, true, Date.now(), obj);
     } else if (node.init && obj) {
       if (typeof obj.common.name == "string") {
-        obj.common.name = await this.getTranslationObj(obj.common.name);
+        if (!obj.common.name || obj.common.name.trim() == "") {
+          obj.common.name = dp.split(".").pop() || dp;
+        } else {
+          obj.common.name = await this.getTranslationObj(obj.common.name);
+        }
       }
       if (typeof obj.common.desc == "string") {
         obj.common.desc = await this.getTranslationObj(obj.common.desc);

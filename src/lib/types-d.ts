@@ -195,6 +195,27 @@ export type ServerInfoType = {
     tan: number;
 };
 
+export type AdjustmentControlsType = {
+    id?: string;
+    red?: [number, number, number];
+    green?: [number, number, number];
+    blue?: [number, number, number];
+    cyan?: [number, number, number];
+    magenta?: [number, number, number];
+    yellow?: [number, number, number];
+    white?: [number, number, number];
+    gammaRed?: number;
+    gammaGreen?: number;
+    gammaBlue?: number;
+    backlightThreshold?: number;
+    backlightColored?: boolean;
+    brightness?: number;
+    brightnessGain?: number;
+    brightnessCompensation?: number;
+    saturationGain?: number;
+    temperature?: number;
+};
+
 export type ServerInfoForStatesType = {
     activeEffects: string;
 

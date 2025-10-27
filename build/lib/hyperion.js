@@ -570,6 +570,32 @@ class Hyperion extends import_library.BaseClass {
             }
             this.ws.send(JSON.stringify({ ...command, tan: 100 }));
           }
+        } else if (parts.length == 6 && parts[4] === "adjustment" && parts[5] === "activate") {
+          if (this.ws) {
+            const values = this.library.getStates(`${this.UDN}.controls.adjustment.`);
+            const command = {
+              command: "adjustment"
+            };
+            const adjustment = {};
+            command.adjustment = adjustment;
+            for (const k in values) {
+              const v = k;
+              const key = k.split(".").pop();
+              if (key !== void 0) {
+                let val = values[v].val;
+                const defaultValue = import_definition.controlDefaults.controls.adjustment[key];
+                if (defaultValue !== void 0) {
+                  if (typeof defaultValue === "object" && Array.isArray(defaultValue)) {
+                    val = val ? JSON.parse(val) : [];
+                  }
+                }
+                if (key !== "activate" && values[k] && values[v].val !== void 0) {
+                  adjustment[key] = val;
+                }
+              }
+            }
+            this.ws.send(JSON.stringify({ ...command, tan: 100 }));
+          }
         } else if (parts.length == 6 && parts[4] === "system") {
           if (this.ws) {
             this.ws.send(

@@ -631,6 +631,37 @@ export class Hyperion extends BaseClass {
                         }
                         this.ws.send(JSON.stringify({ ...command, tan: 100 }));
                     }
+                } else if (parts.length == 6 && parts[4] === 'adjustment' && parts[5] === 'activate') {
+                    if (this.ws) {
+                        const values = this.library.getStates(`${this.UDN}.controls.adjustment.`);
+                        const command: {
+                            [key: string]: any;
+                        } = {
+                            command: 'adjustment',
+                        };
+                        const adjustment: { [key: string]: boolean | number | any[] } = {};
+                        command.adjustment = adjustment;
+                        for (const k in values) {
+                            const v = k as keyof typeof values;
+                            const key = k.split('.').pop();
+                            if (key !== undefined) {
+                                let val: any = values[v]!.val;
+                                const defaultValue =
+                                    controlDefaults.controls.adjustment[
+                                        key as keyof typeof controlDefaults.controls.adjustment
+                                    ];
+                                if (defaultValue !== undefined) {
+                                    if (typeof defaultValue === 'object' && Array.isArray(defaultValue)) {
+                                        val = val ? JSON.parse(val) : [];
+                                    }
+                                }
+                                if (key !== 'activate' && values[k] && values[v]!.val !== undefined) {
+                                    adjustment[key] = val;
+                                }
+                            }
+                        }
+                        this.ws.send(JSON.stringify({ ...command, tan: 100 }));
+                    }
                 } else if (parts.length == 6 && parts[4] === 'system') {
                     if (this.ws) {
                         this.ws.send(
