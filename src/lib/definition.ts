@@ -248,7 +248,6 @@ export const statesObjects: statesObjectsType = {
             },
             native: {},
         },
-        
 
         controls: {
             _channel: {
