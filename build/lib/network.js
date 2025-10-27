@@ -129,6 +129,7 @@ class Network extends import_library.BaseClass {
    * Is called when adapter shuts down - callback has to be called under any circumstances!
    */
   onUnload() {
+    this.unload = true;
     if (this.ssdpTimeout) {
       this.adapter.clearTimeout(this.ssdpTimeout);
     }

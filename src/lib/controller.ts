@@ -142,7 +142,7 @@ export class Controller extends BaseClass {
             hyperion.onUnload();
         }
         this.network.onUnload();
-        this.log.info('unload');
+        //this.log.info('unload');
     }
 
     /**

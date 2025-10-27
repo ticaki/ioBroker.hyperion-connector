@@ -117,6 +117,7 @@ export class Network extends BaseClass {
      * Is called when adapter shuts down - callback has to be called under any circumstances!
      */
     onUnload(): void {
+        this.unload = true;
         if (this.ssdpTimeout) {
             this.adapter.clearTimeout(this.ssdpTimeout);
         }

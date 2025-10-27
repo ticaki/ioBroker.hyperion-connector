@@ -489,6 +489,9 @@ export class Hyperion extends BaseClass {
                     // nothing to do
                 });
         }
+        if (this.unload) {
+            return;
+        }
         this.delayTimeout = this.adapter.setTimeout(
             () => {
                 this.reconnect().catch(() => {
@@ -509,6 +512,9 @@ export class Hyperion extends BaseClass {
         if (this.aliveTimeout) {
             this.adapter.clearTimeout(this.aliveTimeout);
         }
+        if (this.unload) {
+            return;
+        }
         this.aliveTimeout = this.adapter.setTimeout(
             async () => {
                 if (this.ws) {
@@ -523,6 +529,9 @@ export class Hyperion extends BaseClass {
                     } else {
                         this.ws.ping();
                     }
+                }
+                if (this.unload) {
+                    return;
                 }
                 this.aliveCheckTimeout = this.adapter.setTimeout(() => {
                     this.log.warn('connection lost!');
@@ -559,6 +568,7 @@ export class Hyperion extends BaseClass {
      * Is called when adapter shuts down - callback has to be called under any circumstances!
      */
     onUnload(): void {
+        this.unload = true;
         if (this.ws) {
             this.ws.close();
         }

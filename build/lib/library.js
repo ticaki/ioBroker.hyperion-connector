@@ -36,8 +36,7 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
 var library_exports = {};
 __export(library_exports, {
   BaseClass: () => BaseClass,
-  Library: () => Library,
-  sleep: () => sleep
+  Library: () => Library
 });
 module.exports = __toCommonJS(library_exports);
 var import_fs = __toESM(require("fs"));
@@ -801,13 +800,9 @@ class Library extends BaseClass {
     })}`;
   }
 }
-async function sleep(time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
-}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   BaseClass,
-  Library,
-  sleep
+  Library
 });
 //# sourceMappingURL=library.js.map

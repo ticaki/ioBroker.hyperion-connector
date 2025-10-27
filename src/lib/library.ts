@@ -883,11 +883,3 @@ export class Library extends BaseClass {
         })}`;
     }
 }
-/**
- * Sleep for the specified time.
- *
- * @param time The time to sleep.
- */
-export async function sleep(time: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, time));
-}

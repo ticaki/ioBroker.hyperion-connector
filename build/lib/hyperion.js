@@ -437,6 +437,9 @@ class Hyperion extends import_library.BaseClass {
       this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch(() => {
       });
     }
+    if (this.unload) {
+      return;
+    }
     this.delayTimeout = this.adapter.setTimeout(
       () => {
         this.reconnect().catch(() => {
@@ -455,6 +458,9 @@ class Hyperion extends import_library.BaseClass {
     if (this.aliveTimeout) {
       this.adapter.clearTimeout(this.aliveTimeout);
     }
+    if (this.unload) {
+      return;
+    }
     this.aliveTimeout = this.adapter.setTimeout(
       async () => {
         if (this.ws) {
@@ -468,6 +474,9 @@ class Hyperion extends import_library.BaseClass {
           } else {
             this.ws.ping();
           }
+        }
+        if (this.unload) {
+          return;
         }
         this.aliveCheckTimeout = this.adapter.setTimeout(() => {
           this.log.warn("connection lost!");
@@ -501,6 +510,7 @@ class Hyperion extends import_library.BaseClass {
    * Is called when adapter shuts down - callback has to be called under any circumstances!
    */
   onUnload() {
+    this.unload = true;
     if (this.ws) {
       this.ws.close();
     }

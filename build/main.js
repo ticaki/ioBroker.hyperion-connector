@@ -67,7 +67,7 @@ class HyperionController extends utils.Adapter {
     }
     this.log.info(`Reconnect interval is set to ${this.config.reconnectTime} seconds`);
     await this.setState("info.connection", false, true);
-    setTimeout(async () => {
+    this.setTimeout(async () => {
       await this.library.init();
       await this.library.initStates(await this.getStatesAsync("*"));
       await this.controller.init();

@@ -144,7 +144,6 @@ class Controller extends import_library.BaseClass {
       hyperion.onUnload();
     }
     this.network.onUnload();
-    this.log.info("unload");
   }
   /**
    * Is called if a subscribed state changes
