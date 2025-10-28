@@ -14,14 +14,13 @@
 
 Connect to hyperion.ng server. Hyperion Projekt https://hyperion-project.org/forum/
 
-Der Adapter sucht automatisch kurz nach dem Adapterstart nach verfügbaren Hyperion Servern im lokalen Netz.
-Bei fund versucht er sich zu verbinden, im Falle das eine Login nötig ist, fragt er ein Token an.
-Dieses führt zu einem Popup auf der WebUI von Hyperion das man bestätigen muß. 
+Shortly after starting up, the adapter automatically searches for available Hyperion servers in the local network.
+If it finds one, it attempts to connect; if a login is required, it requests a token.
+This will cause a pop-up to appear on the Hyperion WebUI, which you must confirm. If the connection is not established after the first confirmation, please wait 1-2 minutes, and another prompt should appear.
 
-States sind noch nicht benannt, Kommandos soweit mir nützlich eingebaut.
+Commands that I find useful have been incorporated.
 
-Wenn den niemand ausser mir nutzt ist der soweit fertig für mich, falls doch bitte im Forum oder hier melden.
-Dann mache ich ihn noch schön.
+If you require additional commands, please post in the forum or here.
 
 ## Changelog
 <!--
