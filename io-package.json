@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "hyperion-connector",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "news": {
+      "0.2.1": {
+        "en": "first latest release\nClean termination of the adapter",
+        "de": "erste latest Version\nSauberes Beenden des Adapters",
+        "ru": "первый последний выпуск\nЧистое завершение адаптера",
+        "pt": "primeira versão mais recente\nTerminação limpa do adaptador",
+        "nl": "eerste nieuwste release\nSchone beëindiging van de adapter",
+        "fr": "première sortie\nTermination propre de l'adaptateur",
+        "it": "primo rilascio\nCancella la terminazione dell'adattatore",
+        "es": "primera última versión\nTerminación limpia del adaptador",
+        "pl": "pierwsze ostatnie wydanie\nCzyste zakończenie adaptera",
+        "uk": "перший реліз\nОчищення припинення адаптера",
+        "zh-cn": "第一个最新版本\n适配器的清洁终止"
+      },
       "0.2.0": {
         "en": "controls: adjustment added\nworkaround for buggy subscribe in 2.1.1 (maybe adapter only work with 2.1.1)\nupdate deps",
         "de": "steuerungen: adjustment hinzugefügt\nworkaround für buggy abonnieren in 2.1.1 (  hyperion min. 2.1.1)\nupdate deps",

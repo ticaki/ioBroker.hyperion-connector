@@ -27,7 +27,7 @@ If you require additional commands, please post in the forum or here.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.2.1 (2025-11-11)
 * (ticaki) first latest release
 * (ticaki) Clean termination of the adapter
 
