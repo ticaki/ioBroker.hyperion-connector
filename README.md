@@ -27,6 +27,10 @@ If you require additional commands, please post in the forum or here.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (ticaki) first latest release
+* (ticaki) Clean termination of the adapter
+
 ### 0.2.0 (2025-10-27)
 * (ticaki) controls: adjustment added
 * (ticaki) workaround for buggy subscribe in 2.1.1 (maybe adapter only work with 2.1.1)
