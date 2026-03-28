@@ -10,7 +10,7 @@ import { Controller } from './lib/controller';
 import type { configOfHyperionInstance } from './lib/types-d';
 
 // Load your modules here, e.g.:
-// import * as fs from "fs";
+// import * as fs from "node:fs";
 /**
  * Represents the HyperionController adapter.
  */
