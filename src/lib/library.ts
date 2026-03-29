@@ -1,4 +1,4 @@
-import _fs from 'fs';
+import _fs from 'node:fs';
 import type { statesObjectsType } from './definition';
 
 import { genericStateObjects } from './definition';

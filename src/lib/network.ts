@@ -2,7 +2,7 @@
 import { XMLParser } from 'fast-xml-parser';
 import { BaseClass, type AdapterClassDefinition } from './library';
 import SsdpNode from 'node-ssdp';
-import * as http from 'http';
+import * as http from 'node:http';
 import type { DescriptionType } from './types-d';
 import type { WebSocket } from 'ws';
 import { descriptionUrlAppendix } from './definition';
