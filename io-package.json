@@ -123,7 +123,11 @@
     ]
   },
   "native": {
-    "devices": []
+    "devices": [],
+    "enableSysinfo": true,
+    "enableServerinfo": true,
+    "enableDescription": true,
+    "enableInstances": true
   },
   "objects": [],
   "instanceObjects": [

@@ -154,8 +154,20 @@ export type statesObjectsType = {
         description: ChangeTypeToChannelAndState<DescriptionType>;
         serverinfo: ChangeTypeToChannelAndState<ServerInfoForStatesType>;
         sysinfo: ChangeTypeToChannelAndState<SysInfoInfo>;
+        /**
+         * convenience light states: thin projection of LEDDEVICE / adjustment.brightness / color
+         * for VIS / Alexa / Google Home use.
+         */
+        light:
+            | {
+                  power: ioBroker.StateObject;
+                  brightness: ioBroker.StateObject;
+                  color: ioBroker.StateObject;
+              }
+            | customChannelType;
         controls: {
             color: { [key: string]: ioBroker.StateObject } | customChannelType;
+            effect: { [key: string]: ioBroker.StateObject } | customChannelType;
             adjustment:
                 | ({ [key in keyof AdjustmentControlsType]: ioBroker.StateObject } & { activate: ioBroker.StateObject })
                 | customChannelType;
@@ -173,17 +185,39 @@ export type statesObjectsType = {
                       restart: ioBroker.StateObject;
                   }
                 | customChannelType;
+            instance:
+                | {
+                      setinstance: ioBroker.StateObject;
+                      start: ioBroker.StateObject;
+                      stop: ioBroker.StateObject;
+                  }
+                | customChannelType;
+            videomode: { mode: ioBroker.StateObject } | customChannelType;
+            processing: { mappingType: ioBroker.StateObject } | customChannelType;
+            leddevice: { identify: ioBroker.StateObject } | customChannelType;
         } & customChannelType;
     };
 };
 
 export const controlDefaults = {
+    light: {
+        power: false,
+        brightness: 50,
+        color: '#000000',
+    },
     controls: {
         color: {
             color: [0, 0, 0],
             priority: 1,
             origin: '',
             duration: 0,
+            activate: false,
+        },
+        effect: {
+            name: '',
+            priority: 50,
+            duration: 0,
+            origin: 'ioBroker',
             activate: false,
         },
         action: '',
@@ -212,6 +246,20 @@ export const controlDefaults = {
             idle: false,
             toggleIdle: false,
             restart: false,
+        },
+        instance: {
+            setinstance: 0,
+            start: 0,
+            stop: 0,
+        },
+        videomode: {
+            mode: '2D',
+        },
+        processing: {
+            mappingType: 'multicolor_mean',
+        },
+        leddevice: {
+            identify: false,
         },
         adjustment: {
             activate: false,
@@ -247,6 +295,59 @@ export const statesObjects: statesObjectsType = {
                 statusStates: { onlineId: '0.connected', errorId: 'hm-rpc.0.AB203424.0.error' },
             },
             native: {},
+        },
+
+        // Convenience light states — thin projection over componentstate (LEDDEVICE),
+        // adjustment.brightness, and color command. Use these for VIS, Alexa, Google.
+        light: {
+            _channel: {
+                _id: '',
+                type: 'channel',
+                common: { name: '', role: 'light' },
+                native: {},
+            },
+            power: {
+                _id: '',
+                type: 'state',
+                common: {
+                    name: 'power (componentstate LEDDEVICE)',
+                    type: 'boolean',
+                    role: 'switch.power',
+                    read: true,
+                    write: true,
+                    def: false,
+                },
+                native: {},
+            },
+            brightness: {
+                _id: '',
+                type: 'state',
+                common: {
+                    name: 'brightness (adjustment.brightness)',
+                    type: 'number',
+                    role: 'level.dimmer',
+                    read: true,
+                    write: true,
+                    min: 0,
+                    max: 100,
+                    unit: '%',
+                    def: 50,
+                },
+                native: {},
+            },
+            color: {
+                _id: '',
+                type: 'state',
+                common: {
+                    name: 'color hex #RRGGBB (sends color command at priority 50)',
+                    type: 'string',
+                    role: 'level.color.rgb',
+                    read: true,
+                    write: true,
+                    def: '#000000',
+                },
+                native: {},
+            },
         },
 
         controls: {
@@ -826,6 +927,84 @@ export const statesObjects: statesObjectsType = {
                     native: {},
                 },
             },
+            // https://github.com/hyperion-project/hyperion.ng/blob/master/libsrc/api/JSONRPC_schema/schema-effect.json
+            effect: {
+                _channel: {
+                    _id: '',
+                    type: 'channel',
+                    common: {
+                        name: '',
+                    },
+                    native: {},
+                },
+                name: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'string',
+                        role: 'text',
+                        read: true,
+                        write: true,
+                        def: '',
+                    },
+                    native: {},
+                },
+                priority: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 1,
+                        max: 254,
+                        step: 1,
+                        def: 50,
+                    },
+                    native: {},
+                },
+                duration: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'number',
+                        role: 'level.timer',
+                        read: true,
+                        write: true,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                origin: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'string',
+                        role: 'text',
+                        read: true,
+                        write: true,
+                        def: 'ioBroker',
+                    },
+                    native: {},
+                },
+                activate: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: '',
+                        type: 'boolean',
+                        role: 'button',
+                        read: false,
+                        write: true,
+                    },
+                    native: {},
+                },
+            },
             // https://github.com/hyperion-project/hyperion.ng/blob/d75388222a61d8f0587ba276b8949439c23c315d/libsrc/api/JSONRPC_schema/schema-system.json
             system: {
                 _channel: {
@@ -906,6 +1085,136 @@ export const statesObjects: statesObjectsType = {
                     type: 'state',
                     common: {
                         name: '',
+                        type: 'boolean',
+                        role: 'button',
+                        read: false,
+                        write: true,
+                        def: false,
+                    },
+                    native: {},
+                },
+            },
+            // https://github.com/hyperion-project/hyperion.ng/blob/master/libsrc/api/JSONRPC_schema/schema-instance.json
+            instance: {
+                _channel: {
+                    _id: '',
+                    type: 'channel',
+                    common: {
+                        name: '',
+                    },
+                    native: {},
+                },
+                setinstance: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'switch the active hyperion instance for the current connection',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 255,
+                        step: 1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                start: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'start a stopped hyperion instance by id',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 255,
+                        step: 1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                stop: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'stop a running hyperion instance by id',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 255,
+                        step: 1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+            },
+            // https://github.com/hyperion-project/hyperion.ng/blob/master/libsrc/api/JSONRPC_schema/schema-videomode.json
+            videomode: {
+                _channel: {
+                    _id: '',
+                    type: 'channel',
+                    common: { name: '' },
+                    native: {},
+                },
+                mode: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'video mode (2D / 3DSBS / 3DTAB)',
+                        type: 'string',
+                        role: 'text',
+                        read: true,
+                        write: true,
+                        def: '2D',
+                        states: { '2D': '2D', '3DSBS': '3DSBS', '3DTAB': '3DTAB' },
+                    },
+                    native: {},
+                },
+            },
+            // https://github.com/hyperion-project/hyperion.ng/blob/master/libsrc/api/JSONRPC_schema/schema-processing.json
+            processing: {
+                _channel: {
+                    _id: '',
+                    type: 'channel',
+                    common: { name: '' },
+                    native: {},
+                },
+                mappingType: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'image to LED mapping type',
+                        type: 'string',
+                        role: 'text',
+                        read: true,
+                        write: true,
+                        def: 'multicolor_mean',
+                        states: {
+                            multicolor_mean: 'multicolor_mean',
+                            unicolor_mean: 'unicolor_mean',
+                        },
+                    },
+                    native: {},
+                },
+            },
+            // https://github.com/hyperion-project/hyperion.ng/blob/master/libsrc/api/JSONRPC_schema/schema-leddevice.json
+            leddevice: {
+                _channel: {
+                    _id: '',
+                    type: 'channel',
+                    common: { name: '' },
+                    native: {},
+                },
+                identify: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'blink LEDs in sequence to identify the device wiring',
                         type: 'boolean',
                         role: 'button',
                         read: false,

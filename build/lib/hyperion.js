@@ -48,6 +48,8 @@ class Hyperion extends import_library.BaseClass {
   aliveTimeout;
   aliveCheckTimeout;
   legacyAliveCheck = true;
+  /** ids of hyperion instances last seen in serverinfo / instance-update */
+  knownInstanceIds = /* @__PURE__ */ new Set();
   // authorize-tokenRequired // authorize-login
   connectionState = "disconnected";
   /**
@@ -92,6 +94,41 @@ class Hyperion extends import_library.BaseClass {
     }
   }
   /**
+   * Read a `enable*` toggle from the global adapter config. Defaults to `true`
+   * when the value is missing/null so that adapters upgraded from an older
+   * version (without these toggles in `native`) keep their full state tree.
+   *
+   * @param key one of the enable-flags declared in io-package.json `native`
+   */
+  isSubtreeEnabled(key) {
+    const v = this.adapter.config[key];
+    return v === void 0 || v === null ? true : Boolean(v);
+  }
+  /**
+   * Remove the per-device subtrees that the user has disabled in admin so
+   * that previously-created states don't linger after a toggle is flipped
+   * off. Runs once on `init()`; subsequent writes are gated separately.
+   */
+  async cleanupDisabledSubtrees() {
+    const subs = [
+      { key: "enableSysinfo", path: `${this.UDN}.device.sysinfo` },
+      { key: "enableServerinfo", path: `${this.UDN}.device.serverinfo` },
+      { key: "enableDescription", path: `${this.UDN}.device.description` },
+      { key: "enableInstances", path: `${this.UDN}.instances` }
+    ];
+    for (const s of subs) {
+      if (this.isSubtreeEnabled(s.key)) {
+        continue;
+      }
+      try {
+        await this.adapter.delObjectAsync(s.path, { recursive: true });
+        this.log.debug(`cleanup disabled subtree ${s.path}`);
+      } catch (e) {
+        this.log.debug(`cleanup ${s.path}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  }
+  /**
    * init
    *
    * initialize the device
@@ -109,7 +146,12 @@ class Hyperion extends import_library.BaseClass {
     });
     await this.library.writeFromJson(this.UDN, "device", import_definition.statesObjects, import_definition.controlDefaults, false, true);
     await this.library.writedp(`${this.UDN}.authenticationError`, false, import_definition.genericStateObjects.authenticationError);
+    await this.cleanupDisabledSubtrees();
     this.adapter.subscribeStates(`${this.library.cleandp(`${this.UDN}.controls`)}.*`);
+    this.adapter.subscribeStates(`${this.library.cleandp(`${this.UDN}.light`)}.*`);
+    if (this.isSubtreeEnabled("enableInstances")) {
+      this.adapter.subscribeStates(`${this.library.cleandp(`${this.UDN}.instances`)}.*`);
+    }
     if (this.token === void 0 || this.token.length < 36) {
       const obj = await this.adapter.getObjectAsync(this.UDN);
       if (obj && obj.native && obj.native.token) {
@@ -126,15 +168,19 @@ class Hyperion extends import_library.BaseClass {
   setOnline(isOnline) {
     if (isOnline && this.connectionState !== "connected") {
       this.connectionState = "connected";
-      this.adapter.controller.setOnline().catch(() => {
+      this.adapter.controller.setOnline().catch((e) => {
+        this.log.debug(`setOnline(true): ${e instanceof Error ? e.message : String(e)}`);
       });
-      this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch(() => {
+      this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch((e) => {
+        this.log.debug(`write online=true: ${e instanceof Error ? e.message : String(e)}`);
       });
     } else if (!isOnline && this.connectionState !== "disconnected") {
       this.connectionState = "disconnected";
-      this.adapter.controller.setOnline().catch(() => {
+      this.adapter.controller.setOnline().catch((e) => {
+        this.log.debug(`setOnline(false): ${e instanceof Error ? e.message : String(e)}`);
       });
-      this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch(() => {
+      this.library.writedp(`${this.UDN}.online`, isOnline, import_definition.genericStateObjects.online).catch((e) => {
+        this.log.debug(`write online=false: ${e instanceof Error ? e.message : String(e)}`);
       });
     }
   }
@@ -164,12 +210,14 @@ class Hyperion extends import_library.BaseClass {
         },
         native: {}
       });
-      await this.library.writeFromJson(
-        `${this.UDN}.device`,
-        "device.description",
-        import_definition.statesObjects,
-        this.description
-      );
+      if (this.isSubtreeEnabled("enableDescription")) {
+        await this.library.writeFromJson(
+          `${this.UDN}.device`,
+          "device.description",
+          import_definition.statesObjects,
+          this.description
+        );
+      }
       const url = this.description.URLBase.replace("http://", "ws://").replace("https://", "wss://");
       this.log.debug(`Re-/Connect to: ${url}`);
       this.ws = new import_ws.default(url);
@@ -196,15 +244,15 @@ class Hyperion extends import_library.BaseClass {
               this.log.debug("Received:", JSON.stringify(data));
               if (data.command === "authorize-login" && data.success === true) {
                 this.log.info("Login successful");
+                await this.library.writedp(
+                  `${this.UDN}.authenticationError`,
+                  false,
+                  import_definition.genericStateObjects.authenticationError
+                );
                 this.setOnline(true);
                 this.aliveReset();
                 if (this.ws) {
-                  this.ws.send(
-                    JSON.stringify({
-                      command: "sysinfo",
-                      tan: 1
-                    })
-                  );
+                  this.ws.send(JSON.stringify({ command: "sysinfo", tan: 1 }));
                   this.ws.send(
                     JSON.stringify({
                       command: "serverinfo",
@@ -213,19 +261,20 @@ class Hyperion extends import_library.BaseClass {
                       tan: 1
                     })
                   );
-                  return;
                 }
-              } else if (data.command === "authorize-tokenRequired" && data.info && data.info.required === false) {
+                return;
+              }
+              if (data.command === "authorize-tokenRequired" && data.info && data.info.required === false) {
                 this.log.info("No Login required");
+                await this.library.writedp(
+                  `${this.UDN}.authenticationError`,
+                  false,
+                  import_definition.genericStateObjects.authenticationError
+                );
                 this.setOnline(true);
                 this.aliveReset();
                 if (this.ws) {
-                  this.ws.send(
-                    JSON.stringify({
-                      command: "sysinfo",
-                      tan: 1
-                    })
-                  );
+                  this.ws.send(JSON.stringify({ command: "sysinfo", tan: 1 }));
                   this.ws.send(
                     JSON.stringify({
                       command: "serverinfo",
@@ -233,89 +282,130 @@ class Hyperion extends import_library.BaseClass {
                       tan: 1
                     })
                   );
+                }
+                return;
+              }
+              if (data.command === "authorize-tokenRequired" && data.info && data.info.required === true) {
+                if (this.token !== void 0 && this.token.length >= 36) {
+                  this.connectionState = "authorize";
+                  if (this.ws) {
+                    this.ws.send(
+                      JSON.stringify({
+                        command: "authorize",
+                        subcommand: "login",
+                        token: this.token
+                      })
+                    );
+                  }
                   return;
                 }
-              } else if (data.command === "authorize-tokenRequired") {
-                if (data.info && data.info.required === true) {
-                  this.connectionState = "authorize";
-                  if (this.token !== void 0 && this.token.length >= 36) {
-                    if (this.ws) {
-                      this.ws.send(
-                        JSON.stringify({
-                          command: "authorize",
-                          subcommand: "login",
-                          token: this.token
-                        })
-                      );
-                      return;
-                    }
-                  } else {
-                    this.connectionState = "pendingAuthorize";
-                    if (this.ws) {
-                      this.log.warn("Requesting token! Please check the Hyperion server webui!");
-                      this.ws.send(
-                        JSON.stringify({
-                          command: "authorize",
-                          subcommand: "requestToken",
-                          comment: "Iobroker HyperionConnector",
-                          id: "io341"
-                        })
-                      );
-                      return;
-                    }
-                  }
-                }
-              } else if (data.command === "authorize-requestToken" && data.success === true) {
-                if (data.success === true) {
-                  this.connectionState = "authorize";
-                  this.log.debug("Token request successful");
-                  this.token = data.info.token;
-                  if (typeof this.token === "string" && this.token.length >= 36) {
-                    await this.adapter.extendObject(this.UDN, {
-                      native: {
-                        token: this.adapter.encrypt(this.UDN, this.token)
-                      }
-                    });
-                    if (this.ws) {
-                      this.ws.send(
-                        JSON.stringify({
-                          command: "authorize",
-                          subcommand: "login",
-                          token: this.token
-                        })
-                      );
-                      return;
-                    }
-                  }
-                }
-              } else if (data.command === "authorize-requestToken" && data.success === false) {
-                this.log.error("Token request timeout or denied");
-              } else if (data.command === "authorize-login" && data.success === false) {
-                this.log.error(
-                  "Login failed - wrong token? Please check the Hyperion server webui and adminpage of this adapter."
-                );
-                const obj = await this.adapter.getObjectAsync(this.UDN);
-                if (obj && obj.native && obj.native.token && obj.native.token.length >= 36) {
-                  this.log.error(
-                    "An automatically generated token was found for this server, in the course of this error the token was deleted. Restart the adapter and confirm access in the Hyperion webui."
+                this.connectionState = "pendingAuthorize";
+                if (this.ws) {
+                  this.log.warn(
+                    "Requesting token! Please confirm the request in the Hyperion webui."
                   );
-                  delete obj.native.token;
-                  await this.adapter.setObject(obj._id, obj);
+                  this.ws.send(
+                    JSON.stringify({
+                      command: "authorize",
+                      subcommand: "requestToken",
+                      comment: "Iobroker HyperionConnector",
+                      id: "io341"
+                    })
+                  );
                 }
+                return;
               }
-              this.log.error("Not authorized");
-              this.connectionState = "notAuthorize";
-              await this.library.writedp(
-                `${this.UDN}.authenticationError`,
-                true,
-                import_definition.genericStateObjects.online
-              );
-              this.onUnload();
+              if (data.command === "authorize-requestToken" && data.success === true) {
+                if (this.connectionState !== "pendingAuthorize") {
+                  this.log.debug(
+                    `Ignoring stale authorize-requestToken success (state=${this.connectionState})`
+                  );
+                  return;
+                }
+                const newToken = data.info && data.info.token;
+                if (typeof newToken !== "string" || newToken.length < 36) {
+                  this.log.warn("Token request returned an invalid token; will retry");
+                  this.connectionState = "disconnected";
+                  if (this.ws) {
+                    this.ws.close();
+                  }
+                  return;
+                }
+                this.log.debug("Token request successful");
+                this.token = newToken;
+                this.connectionState = "authorize";
+                try {
+                  await this.adapter.extendObject(this.UDN, {
+                    native: { token: this.adapter.encrypt(this.UDN, newToken) }
+                  });
+                } catch (e) {
+                  this.log.warn(`persist token: ${e instanceof Error ? e.message : String(e)}`);
+                }
+                if (this.ws) {
+                  this.ws.send(
+                    JSON.stringify({
+                      command: "authorize",
+                      subcommand: "login",
+                      token: newToken
+                    })
+                  );
+                }
+                return;
+              }
+              if (data.command === "authorize-requestToken" && data.success === false) {
+                if (this.connectionState !== "pendingAuthorize") {
+                  this.log.debug(
+                    `Ignoring stale authorize-requestToken failure (state=${this.connectionState})`
+                  );
+                  return;
+                }
+                this.log.warn(
+                  "Token request was denied or timed out. Trigger controls/checkOnline to retry \u2014 the popup must be confirmed in the Hyperion webui."
+                );
+                this.connectionState = "notAuthorize";
+                await this.library.writedp(
+                  `${this.UDN}.authenticationError`,
+                  true,
+                  import_definition.genericStateObjects.authenticationError
+                );
+                if (this.ws) {
+                  this.ws.close();
+                }
+                return;
+              }
+              if (data.command === "authorize-login" && data.success === false) {
+                if (this.connectionState !== "authorize") {
+                  this.log.debug(
+                    `Ignoring stale authorize-login failure (state=${this.connectionState})`
+                  );
+                  return;
+                }
+                this.log.warn(
+                  "Login failed - the saved token was rejected. Requesting a new token automatically; please confirm the request in the Hyperion webui."
+                );
+                this.token = void 0;
+                try {
+                  const obj = await this.adapter.getObjectAsync(this.UDN);
+                  if (obj && obj.native && obj.native.token) {
+                    delete obj.native.token;
+                    await this.adapter.setObject(obj._id, obj);
+                  }
+                } catch (e) {
+                  this.log.debug(`clear bad token: ${e instanceof Error ? e.message : String(e)}`);
+                }
+                this.connectionState = "disconnected";
+                if (this.ws) {
+                  this.ws.close();
+                }
+                return;
+              }
+              this.log.warn(`Unexpected authorize message: ${JSON.stringify(data)}`);
               return;
             } else if (data.command === "serverinfo") {
               const info = data.info;
               info.components = this.changeArrayToJsonIfName(info.components);
               await this.updateComponentControlsStates(info.components);
+              await this.updateEffectNameStates(info.effects);
               info.effects = this.changeArrayToJsonIfName(info.effects);
               await this.library.writedp(
                 `${this.UDN}.priorities.json`,
@@ -327,9 +417,24 @@ class Hyperion extends import_library.BaseClass {
                 JSON.stringify(info.leds),
                 import_definition.genericStateObjects.json
               );
+              if (Array.isArray(info.instance)) {
+                await this.handleInstancesUpdate(info.instance);
+              }
+              await this.reflectLightBrightness(info.adjustment);
+              if (typeof info.videomode === "string") {
+                await this.library.writedp(`${this.UDN}.controls.videomode.mode`, info.videomode);
+              }
+              if (typeof info.imageToLedMappingType === "string") {
+                await this.library.writedp(
+                  `${this.UDN}.controls.processing.mappingType`,
+                  info.imageToLedMappingType
+                );
+              }
               delete info.leds;
-              await this.library.writeFromJson(this.UDN, "device.serverinfo", import_definition.statesObjects, info);
-              await this.cleanTree();
+              if (this.isSubtreeEnabled("enableServerinfo")) {
+                await this.library.writeFromJson(this.UDN, "device.serverinfo", import_definition.statesObjects, info);
+                await this.cleanTree();
+              }
             } else if (data.command.endsWith === "priorities-update") {
               if (this.ws) {
                 this.ws.send(
@@ -347,7 +452,33 @@ class Hyperion extends import_library.BaseClass {
                 info.components = this.changeArrayToJsonIfName(data.data);
                 await this.updateComponentControlsStates(info.components);
               } else if (path == "effects") {
+                await this.updateEffectNameStates(data.data);
                 info.effects = this.changeArrayToJsonIfName(data.data);
+              } else if (path == "instance") {
+                if (Array.isArray(data.data)) {
+                  await this.handleInstancesUpdate(data.data);
+                }
+                this.log.debug("Received:", JSON.stringify(data));
+                return;
+              } else if (path == "adjustment") {
+                await this.reflectLightBrightness(data.data);
+                this.log.debug("Received:", JSON.stringify(data));
+                return;
+              } else if (path == "videomode") {
+                if (typeof data.data === "string") {
+                  await this.library.writedp(`${this.UDN}.controls.videomode.mode`, data.data);
+                }
+                this.log.debug("Received:", JSON.stringify(data));
+                return;
+              } else if (path == "imageToLedMapping") {
+                if (typeof data.data === "string") {
+                  await this.library.writedp(
+                    `${this.UDN}.controls.processing.mappingType`,
+                    data.data
+                  );
+                }
+                this.log.debug("Received:", JSON.stringify(data));
+                return;
               } else if (path == "leds") {
                 await this.library.writedp(
                   `${this.UDN}.leds.json`,
@@ -365,22 +496,27 @@ class Hyperion extends import_library.BaseClass {
                 }
                 return;
               }
-              await this.library.writeFromJson(this.UDN, "device.serverinfo", import_definition.statesObjects, info);
+              if (this.isSubtreeEnabled("enableServerinfo")) {
+                await this.library.writeFromJson(this.UDN, "device.serverinfo", import_definition.statesObjects, info);
+              }
               this.log.debug("Received:", JSON.stringify(data));
             } else if (data.command === "sysinfo") {
-              await this.library.writeFromJson(
-                this.UDN,
-                "device.sysinfo",
-                import_definition.statesObjects,
-                data.info
-              );
+              if (this.isSubtreeEnabled("enableSysinfo")) {
+                await this.library.writeFromJson(
+                  this.UDN,
+                  "device.sysinfo",
+                  import_definition.statesObjects,
+                  data.info
+                );
+              }
             } else {
               await this.updateACKControlsStates(data);
               this.log.debug("Received:", JSON.stringify(data));
             }
             this.aliveReset();
           }
-        } catch {
+        } catch (e) {
+          this.log.debug(`message handler: ${e instanceof Error ? e.message : String(e)}`);
         }
       });
       this.ws.addEventListener("close", () => {
@@ -388,7 +524,8 @@ class Hyperion extends import_library.BaseClass {
         this.ws = void 0;
         if (this.connectionState !== "notAuthorize") {
           this.aliveReset(false);
-          this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch(() => {
+          this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch((e) => {
+            this.log.debug(`reset checkOnline on close: ${e instanceof Error ? e.message : String(e)}`);
           });
           this.delayReconnect();
         } else {
@@ -402,8 +539,8 @@ class Hyperion extends import_library.BaseClass {
       this.ws.on("pong", () => {
         this.aliveReset();
       });
-    } catch {
-      this.log.debug("No connection");
+    } catch (e) {
+      this.log.debug(`reconnect: ${e instanceof Error ? e.message : String(e)}`);
       if (this.ws) {
         this.ws.terminate();
       }
@@ -434,7 +571,8 @@ class Hyperion extends import_library.BaseClass {
     });
     if (this.fastReconnect !== void 0 && this.fastReconnect <= (/* @__PURE__ */ new Date()).getTime()) {
       this.fastReconnect = void 0;
-      this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch(() => {
+      this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline).catch((e) => {
+        this.log.debug(`reset checkOnline on delay: ${e instanceof Error ? e.message : String(e)}`);
       });
     }
     if (this.unload) {
@@ -442,7 +580,8 @@ class Hyperion extends import_library.BaseClass {
     }
     this.delayTimeout = this.adapter.setTimeout(
       () => {
-        this.reconnect().catch(() => {
+        this.reconnect().catch((e) => {
+          this.log.warn(`reconnect failed: ${e instanceof Error ? e.message : String(e)}`);
         });
       },
       // fast reconnect if time is not over
@@ -552,141 +691,288 @@ class Hyperion extends import_library.BaseClass {
     }
     return useArray ? result : array;
   }
+  /**
+   * Send a JSON command to Hyperion via WebSocket.
+   * If `instanceId` is given, the `instance` field is appended so that
+   * the command targets a specific Hyperion instance rather than the
+   * connection's currently selected default instance.
+   *
+   * @param payload  command payload (must contain `command` and optionally `tan`)
+   * @param instanceId  optional Hyperion instance id to target
+   */
+  sendWsCommand(payload, instanceId) {
+    if (!this.ws) {
+      return;
+    }
+    const full = instanceId !== void 0 ? { ...payload, instance: instanceId } : payload;
+    this.ws.send(JSON.stringify(full));
+  }
+  /**
+   * Read controls.<group>.* states with an optional instance prefix.
+   *
+   * @param group  controls subgroup ('color', 'effect', 'adjustment', …)
+   * @param instanceId  optional instance id; if given, reads from instances.<id>.controls.<group>.
+   */
+  getControlsStates(group, instanceId) {
+    const prefix = instanceId !== void 0 ? `${this.UDN}.instances.${instanceId}.controls.${group}.` : `${this.UDN}.controls.${group}.`;
+    return this.library.getStates(prefix);
+  }
   async onStateChange(id, state) {
-    if (state) {
-      const parts = id.split(".");
-      if (parts && parts.length >= 4 && parts[3] === "controls") {
-        if (parts.length == 6 && parts[4] === "color" && parts[5] === "activate") {
-          if (this.ws) {
-            const values = this.library.getStates(`${this.UDN}.controls.color.`);
-            const command = {
-              command: "color"
-            };
-            for (const k in values) {
-              const v = k;
-              const key = k.split(".").pop();
-              if (key !== void 0) {
-                let val = values[v].val;
-                const defaultValue = import_definition.controlDefaults.controls.color[key];
-                if (defaultValue !== void 0) {
-                  if (typeof defaultValue === "object" && Array.isArray(defaultValue)) {
-                    val = val ? JSON.parse(val) : [];
-                  }
-                }
-                if (key !== "activate" && values[k] && values[v].val !== void 0) {
-                  command[key] = val;
-                }
-              }
-            }
-            this.ws.send(JSON.stringify({ ...command, tan: 100 }));
-          }
-        } else if (parts.length == 6 && parts[4] === "adjustment" && parts[5] === "activate") {
-          if (this.ws) {
-            const values = this.library.getStates(`${this.UDN}.controls.adjustment.`);
-            const command = {
-              command: "adjustment"
-            };
-            const adjustment = {};
-            command.adjustment = adjustment;
-            for (const k in values) {
-              const v = k;
-              const key = k.split(".").pop();
-              if (key !== void 0) {
-                let val = values[v].val;
-                const defaultValue = import_definition.controlDefaults.controls.adjustment[key];
-                if (defaultValue !== void 0) {
-                  if (typeof defaultValue === "object" && Array.isArray(defaultValue)) {
-                    val = val ? JSON.parse(val) : [];
-                  }
-                }
-                if (key !== "activate" && values[k] && values[v].val !== void 0) {
-                  adjustment[key] = val;
+    var _a;
+    if (!state) {
+      return;
+    }
+    let parts = id.split(".");
+    let instanceId;
+    if (parts.length >= 6 && parts[3] === "instances" && (parts[5] === "controls" || parts[5] === "light") && /^\d+$/.test(parts[4])) {
+      instanceId = parseInt(parts[4], 10);
+      parts = [parts[0], parts[1], parts[2], parts[5], ...parts.slice(6)];
+    }
+    if (parts && parts.length >= 4 && parts[3] === "controls") {
+      if (parts.length == 6 && parts[4] === "color" && parts[5] === "activate") {
+        if (this.ws) {
+          const values = this.getControlsStates("color", instanceId);
+          const command = {
+            command: "color"
+          };
+          for (const k in values) {
+            const v = k;
+            const key = k.split(".").pop();
+            if (key !== void 0) {
+              let val = values[v].val;
+              const defaultValue = import_definition.controlDefaults.controls.color[key];
+              if (defaultValue !== void 0) {
+                if (typeof defaultValue === "object" && Array.isArray(defaultValue)) {
+                  val = val ? JSON.parse(val) : [];
                 }
               }
-            }
-            this.ws.send(JSON.stringify({ ...command, tan: 100 }));
-          }
-        } else if (parts.length == 6 && parts[4] === "system") {
-          if (this.ws) {
-            this.ws.send(
-              JSON.stringify({
-                command: parts[4],
-                subcommand: parts[5],
-                tan: 100
-              })
-            );
-          }
-        } else if (parts.length == 6 && parts[4] === "sourceselect") {
-          if (this.ws) {
-            try {
-              this.ws.send(
-                JSON.stringify(
-                  parts[5] === "auto" ? {
-                    command: "sourceselect",
-                    tan: 100,
-                    auto: true
-                  } : {
-                    command: "sourceselect",
-                    tan: 100,
-                    priority: state.val
-                  }
-                )
-              );
-            } catch {
-              this.log.warn(`Invalid command from ${id}`);
+              if (key !== "activate" && values[k] && values[v].val !== void 0) {
+                command[key] = val;
+              }
             }
           }
-        } else if (parts.length == 6 && parts[4] === "clear") {
-          if (this.ws) {
-            this.ws.send(
-              JSON.stringify({
-                command: "clear",
-                priority: state.val,
-                tan: 100
-              })
-            );
-          }
-        } else if (parts.length == 6 && parts[4] === "componentstate") {
-          if (this.ws) {
-            this.ws.send(
-              JSON.stringify({
-                command: "componentstate",
-                componentstate: {
-                  component: parts[5],
-                  state: state.val
-                },
-                tan: 90
-              })
-            );
-          }
-        } else if (parts.length == 5 && parts[4] === "action") {
-          if (this.ws && typeof state.val === "string") {
-            try {
-              const command = JSON.parse(state.val);
-              command.tan = 220;
-              this.ws.send(JSON.stringify(command));
-            } catch {
-              this.log.warn(`Invalid JSON in ${id}`);
+          this.sendWsCommand({ ...command, tan: 100 }, instanceId);
+        }
+      } else if (parts.length == 6 && parts[4] === "effect" && parts[5] === "activate") {
+        if (this.ws) {
+          const values = this.getControlsStates("effect", instanceId);
+          const command = { command: "effect" };
+          const effect = {};
+          for (const k in values) {
+            const key = k.split(".").pop();
+            if (key === void 0 || key === "activate") {
+              continue;
+            }
+            const val = (_a = values[k]) == null ? void 0 : _a.val;
+            if (val === void 0 || val === null) {
+              continue;
+            }
+            if (key === "name") {
+              effect.name = val;
+            } else if (key === "priority" || key === "duration") {
+              command[key] = val;
+            } else if (key === "origin") {
+              command.origin = val;
             }
           }
-        } else if (parts.length == 5 && parts[4] === "checkOnline") {
-          if (!this.ws && this.connectionState === "disconnected" && state.val === true) {
-            this.fastReconnect = (/* @__PURE__ */ new Date()).getTime() + 3e4;
-            this.delayReconnect();
+          if (!effect.name) {
+            this.log.warn(`Cannot start effect: controls.effect.name is empty`);
             return;
           }
-          this.fastReconnect = void 0;
-          await this.library.writedp(
-            `${this.UDN}.controls.checkOnline`,
-            false,
-            import_definition.genericStateObjects.checkOnline
+          command.effect = effect;
+          this.sendWsCommand({ ...command, tan: 100 }, instanceId);
+        }
+      } else if (parts.length == 6 && parts[4] === "adjustment" && parts[5] === "activate") {
+        if (this.ws) {
+          const values = this.getControlsStates("adjustment", instanceId);
+          const command = {
+            command: "adjustment"
+          };
+          const adjustment = {};
+          command.adjustment = adjustment;
+          for (const k in values) {
+            const v = k;
+            const key = k.split(".").pop();
+            if (key !== void 0) {
+              let val = values[v].val;
+              const defaultValue = import_definition.controlDefaults.controls.adjustment[key];
+              if (defaultValue !== void 0) {
+                if (typeof defaultValue === "object" && Array.isArray(defaultValue)) {
+                  val = val ? JSON.parse(val) : [];
+                }
+              }
+              if (key !== "activate" && values[k] && values[v].val !== void 0) {
+                adjustment[key] = val;
+              }
+            }
+          }
+          this.sendWsCommand({ ...command, tan: 100 }, instanceId);
+        }
+      } else if (parts.length == 6 && parts[4] === "system") {
+        if (this.ws) {
+          this.sendWsCommand(
+            {
+              command: parts[4],
+              subcommand: parts[5],
+              tan: 100
+            },
+            instanceId
           );
-          if (state.val === true) {
-            this.log.warn(
-              `Dont use this state just for fun :) ${this.ws ? "Server is online must be offline! " : this.connectionState === "notAuthorize" ? "The reason for being offline is a failed login, a faster reconnection is not possible!" : ""}`
-            );
+        }
+      } else if (parts.length == 6 && parts[4] === "sourceselect") {
+        if (this.ws) {
+          try {
+            const payload = parts[5] === "auto" ? { command: "sourceselect", tan: 100, auto: true } : { command: "sourceselect", tan: 100, priority: state.val };
+            this.sendWsCommand(payload, instanceId);
+          } catch (e) {
+            this.log.warn(`Invalid command from ${id}: ${e instanceof Error ? e.message : String(e)}`);
           }
         }
+      } else if (parts.length == 6 && parts[4] === "clear") {
+        if (this.ws) {
+          this.sendWsCommand(
+            {
+              command: "clear",
+              priority: state.val,
+              tan: 100
+            },
+            instanceId
+          );
+        }
+      } else if (parts.length == 6 && parts[4] === "componentstate") {
+        if (this.ws) {
+          this.sendWsCommand(
+            {
+              command: "componentstate",
+              componentstate: {
+                component: parts[5],
+                state: state.val
+              },
+              tan: 90
+            },
+            instanceId
+          );
+        }
+      } else if (parts.length == 6 && parts[4] === "videomode" && parts[5] === "mode") {
+        if (this.ws && typeof state.val === "string") {
+          this.sendWsCommand({ command: "videomode", videoMode: state.val, tan: 90 }, instanceId);
+        }
+      } else if (parts.length == 6 && parts[4] === "processing" && parts[5] === "mappingType") {
+        if (this.ws && typeof state.val === "string") {
+          this.sendWsCommand({ command: "processing", mappingType: state.val, tan: 90 }, instanceId);
+        }
+      } else if (parts.length == 6 && parts[4] === "leddevice" && parts[5] === "identify") {
+        if (this.ws) {
+          this.sendWsCommand({ command: "leddevice", subcommand: "identify", tan: 90 }, instanceId);
+        }
+      } else if (parts.length == 6 && parts[4] === "instance") {
+        if (this.ws && typeof state.val === "number") {
+          const sub = parts[5];
+          let payload;
+          if (sub === "setinstance") {
+            payload = {
+              command: "instance",
+              subcommand: "setinstance",
+              instance: state.val,
+              tan: 100
+            };
+          } else if (sub === "start") {
+            payload = {
+              command: "instance",
+              subcommand: "startInstance",
+              instance: state.val,
+              tan: 100
+            };
+          } else if (sub === "stop") {
+            payload = {
+              command: "instance",
+              subcommand: "stopInstance",
+              instance: state.val,
+              tan: 100
+            };
+          }
+          if (payload) {
+            this.ws.send(JSON.stringify(payload));
+          }
+        }
+      } else if (parts.length == 5 && parts[4] === "action") {
+        if (this.ws && typeof state.val === "string") {
+          try {
+            const command = JSON.parse(state.val);
+            command.tan = 220;
+            this.sendWsCommand(command, instanceId);
+          } catch (e) {
+            this.log.warn(`Invalid JSON in ${id}: ${e instanceof Error ? e.message : String(e)}`);
+          }
+        }
+      } else if (parts.length == 5 && parts[4] === "checkOnline") {
+        if (!this.ws && state.val === true && (this.connectionState === "disconnected" || this.connectionState === "notAuthorize")) {
+          if (this.connectionState === "notAuthorize") {
+            this.connectionState = "disconnected";
+            await this.library.writedp(
+              `${this.UDN}.authenticationError`,
+              false,
+              import_definition.genericStateObjects.authenticationError
+            );
+          }
+          this.fastReconnect = (/* @__PURE__ */ new Date()).getTime() + 3e4;
+          this.delayReconnect();
+          return;
+        }
+        this.fastReconnect = void 0;
+        await this.library.writedp(`${this.UDN}.controls.checkOnline`, false, import_definition.genericStateObjects.checkOnline);
+        if (state.val === true) {
+          this.log.warn(
+            `Dont use this state just for fun :) ${this.ws ? "Server is online must be offline! " : ""}`
+          );
+        }
+      }
+    } else if (parts && parts.length === 5 && parts[3] === "light") {
+      if (!this.ws) {
+        return;
+      }
+      const sub = parts[4];
+      if (sub === "power" && typeof state.val === "boolean") {
+        this.sendWsCommand(
+          {
+            command: "componentstate",
+            componentstate: { component: "LEDDEVICE", state: state.val },
+            tan: 90
+          },
+          instanceId
+        );
+      } else if (sub === "brightness" && typeof state.val === "number") {
+        const clamped = Math.max(0, Math.min(100, Math.round(state.val)));
+        this.sendWsCommand(
+          {
+            command: "adjustment",
+            adjustment: { brightness: clamped },
+            tan: 100
+          },
+          instanceId
+        );
+      } else if (sub === "color" && typeof state.val === "string") {
+        const hex = state.val.replace(/^#/, "");
+        if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
+          this.log.warn(`light.color must be #RRGGBB hex; got ${state.val}`);
+          return;
+        }
+        const rgb = [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16)
+        ];
+        this.sendWsCommand(
+          {
+            command: "color",
+            color: rgb,
+            priority: 50,
+            duration: 0,
+            origin: "ioBroker (light)",
+            tan: 100
+          },
+          instanceId
+        );
       }
     }
   }
@@ -704,7 +990,7 @@ class Hyperion extends import_library.BaseClass {
         const values = this.library.getStates(`${this.UDN}.controls.${commands[0]}.`);
         for (const k in values) {
           const v = k;
-          if (commands[0] == "color" && k.endsWith("activate")) {
+          if ((commands[0] == "color" || commands[0] == "effect") && k.endsWith("activate")) {
             await this.library.writedp(k, false);
           } else if (commands[0] == "sourceselect" && k.endsWith("auto")) {
             await this.library.writedp(k, false);
@@ -723,6 +1009,117 @@ class Hyperion extends import_library.BaseClass {
     for (const k in data) {
       const v = k;
       await this.library.writedp(`${this.UDN}.controls.componentstate.${k}`, data[v].enabled);
+      if (k === "LEDDEVICE") {
+        await this.library.writedp(`${this.UDN}.light.power`, !!data[v].enabled);
+      }
+    }
+  }
+  /**
+   * Mirror the first adjustment's `brightness` into the convenience `light.brightness` role.
+   * Hyperion typically reports a single `default` adjustment bucket; if multiple buckets
+   * exist we take the first one — the convenience role does not attempt per-bucket nuance.
+   *
+   * @param adjustments  array as delivered by serverinfo.adjustment / adjustment-update
+   */
+  async reflectLightBrightness(adjustments) {
+    var _a;
+    if (!Array.isArray(adjustments) || adjustments.length === 0) {
+      return;
+    }
+    const brightness = (_a = adjustments[0]) == null ? void 0 : _a.brightness;
+    if (typeof brightness === "number") {
+      await this.library.writedp(`${this.UDN}.light.brightness`, brightness);
+    }
+  }
+  /**
+   * Materialise per-instance state subtrees, persist `instances.json`, and clean up
+   * channels for instances that no longer exist on the server.
+   *
+   * Each running or known instance gets `<UDN>/instances/<id>/` with:
+   *   - `_channel` named after `friendly_name`
+   *   - `running` (boolean indicator)
+   *   - `controls/...` mirroring the global controls (without the `instance` lifecycle channel)
+   *
+   * Writes from `<UDN>/instances/<id>/controls/...` are routed through
+   * `onStateChange` and sent with `instance:<id>` so they target this instance
+   * regardless of the connection's currently selected default.
+   *
+   * @param instances  array as delivered by `serverinfo.instance` / `instance-update`
+   */
+  async handleInstancesUpdate(instances) {
+    if (!this.isSubtreeEnabled("enableInstances")) {
+      return;
+    }
+    await this.library.writedp(`${this.UDN}.instances.json`, JSON.stringify(instances), import_definition.genericStateObjects.json);
+    const seen = /* @__PURE__ */ new Set();
+    const { instance: _omitLifecycle, ...controlsForInstance } = import_definition.controlDefaults.controls;
+    const perInstanceDefaults = { controls: controlsForInstance, light: import_definition.controlDefaults.light };
+    for (const inst of instances) {
+      const id = typeof (inst == null ? void 0 : inst.instance) === "number" ? inst.instance : void 0;
+      if (id === void 0) {
+        continue;
+      }
+      seen.add(id);
+      await this.library.writedp(`${this.UDN}.instances.${id}`, void 0, {
+        _id: "",
+        type: "channel",
+        common: { name: inst.friendly_name || `Instance ${id}` },
+        native: {}
+      });
+      await this.library.writedp(`${this.UDN}.instances.${id}.running`, !!inst.running, {
+        _id: "",
+        type: "state",
+        common: {
+          name: "instance is running",
+          type: "boolean",
+          role: "indicator",
+          read: true,
+          write: false
+        },
+        native: {}
+      });
+      await this.library.writeFromJson(
+        `${this.UDN}.instances.${id}`,
+        "device",
+        import_definition.statesObjects,
+        perInstanceDefaults,
+        false,
+        true
+      );
+    }
+    for (const old of this.knownInstanceIds) {
+      if (!seen.has(old)) {
+        try {
+          await this.adapter.delObjectAsync(`${this.UDN}.instances.${old}`, { recursive: true });
+        } catch (e) {
+          this.log.debug(`delete stale instance ${old}: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    }
+    this.knownInstanceIds = seen;
+  }
+  /**
+   * Populate `common.states` of `controls/effect/name` with the names of the effects
+   * currently available on the server. Lets the admin UI show a dropdown.
+   *
+   * @param effects array of effect descriptors as delivered by serverinfo / effects-update
+   */
+  async updateEffectNameStates(effects) {
+    if (!Array.isArray(effects)) {
+      return;
+    }
+    const states = {};
+    for (const e of effects) {
+      if (e && typeof e.name === "string") {
+        states[e.name] = e.name;
+      }
+    }
+    try {
+      await this.adapter.extendObject(`${this.UDN}.controls.effect.name`, {
+        common: { states }
+      });
+    } catch (e) {
+      this.log.debug(`updateEffectNameStates: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 }

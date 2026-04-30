@@ -1,11 +1,7 @@
 {
-    // Verwendet IntelliSense zum Ermitteln möglicher Attribute.
-    // Zeigen Sie auf vorhandene Attribute, um die zugehörigen Beschreibungen anzuzeigen.
-    // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-       {
+        {
             "name": "Attach to remote",
             "port": 9229,
             "request": "attach",
@@ -15,5 +11,25 @@
             "restart": true,
             "type": "node"
         },
+        {
+            "name": "Launch Adapter (dev-server watch -n)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/.dev-server/default/node_modules/iobroker.hyperion-connector/build/main.js",
+            "args": ["--debug", "0"],
+            "cwd": "${workspaceFolder}/.dev-server/default",
+            "console": "internalConsole",
+            "outputCapture": "std",
+            "attachSimplePort": 9230,
+            "runtimeArgs": ["--inspect-brk=9230"],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/.dev-server/default/node_modules/iobroker.hyperion-connector/build/**/*.js"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/.dev-server/default/node_modules/iobroker.hyperion-connector/build/**"
+            ]
+        }
     ]
 }

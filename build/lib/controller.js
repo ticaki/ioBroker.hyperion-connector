@@ -104,7 +104,8 @@ class Controller extends import_library.BaseClass {
     for (const hyperion of this.hyperions) {
       connected += hyperion.connectionState === "connected" ? 1 : 0;
     }
-    this.library.writedp(`info.connection`, connected !== 0).catch(() => {
+    this.library.writedp(`info.connection`, connected !== 0).catch((e) => {
+      this.log.debug(`write info.connection: ${e instanceof Error ? e.message : String(e)}`);
     });
   }
   /**
@@ -156,7 +157,7 @@ class Controller extends import_library.BaseClass {
   async onStateChange(id, state) {
     if (state) {
       const parts = id.split(".");
-      if (parts.length > 2 && parts[3] === "controls") {
+      if (parts.length > 2 && (parts[3] === "controls" || parts[3] === "instances" || parts[3] === "light")) {
         const tid = parts.slice(2).join(".");
         this.library.setdb(tid, "state", state.val, void 0, state.ack, state.ts);
         const instance = parts[2];

@@ -11,5 +11,15 @@
     "getDevices": "Refresh Devices",
     "hyperion-ng2 adapter settings": "Adapter settings for hyperion-ng2",
     "reconnectTime":"Reconnect interval",
-    "reconnectTime_tooltip":"Time in seconds to wait before trying to reconnect to the server (min: 3s)"
+    "reconnectTime_tooltip":"Time in seconds to wait before trying to reconnect to the server (min: 3s)",
+    "dataReductionHeader": "Data reduction",
+    "dataReductionHint": "Disable subtrees you don't need. Disabled subtrees are removed on adapter start and no longer updated. controls/ and light/ are always kept.",
+    "enableSysinfo": "device.sysinfo",
+    "enableSysinfo_tooltip": "System info from the Hyperion server (host, OS, CPU, memory, …). Many states.",
+    "enableServerinfo": "device.serverinfo",
+    "enableServerinfo_tooltip": "Server info: components, effects, LED metadata, hyperion config. Many states.",
+    "enableDescription": "device.description",
+    "enableDescription_tooltip": "Static SSDP/UPnP description fields. Rarely needed at runtime.",
+    "enableInstances": "instances",
+    "enableInstances_tooltip": "Per-instance subtrees with their own controls/light. Disable if you only use the default Hyperion instance."
 }

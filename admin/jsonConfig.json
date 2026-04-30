@@ -97,8 +97,62 @@
             "md": 6,
             "lg": 4,
             "xl": 4
+        },
+        "_dataReductionHeader": {
+            "type": "header",
+            "text": "dataReductionHeader",
+            "size": 4,
+            "newLine": true
+        },
+        "_dataReductionHint": {
+            "type": "staticText",
+            "text": "dataReductionHint",
+            "newLine": true
+        },
+        "enableSysinfo": {
+            "type": "checkbox",
+            "label": "enableSysinfo",
+            "tooltip": "enableSysinfo_tooltip",
+            "default": true,
+            "newLine": true,
+            "xs": 12,
+            "sm": 6,
+            "md": 6,
+            "lg": 3,
+            "xl": 3
+        },
+        "enableServerinfo": {
+            "type": "checkbox",
+            "label": "enableServerinfo",
+            "tooltip": "enableServerinfo_tooltip",
+            "default": true,
+            "xs": 12,
+            "sm": 6,
+            "md": 6,
+            "lg": 3,
+            "xl": 3
+        },
+        "enableDescription": {
+            "type": "checkbox",
+            "label": "enableDescription",
+            "tooltip": "enableDescription_tooltip",
+            "default": true,
+            "xs": 12,
+            "sm": 6,
+            "md": 6,
+            "lg": 3,
+            "xl": 3
+        },
+        "enableInstances": {
+            "type": "checkbox",
+            "label": "enableInstances",
+            "tooltip": "enableInstances_tooltip",
+            "default": true,
+            "xs": 12,
+            "sm": 6,
+            "md": 6,
+            "lg": 3,
+            "xl": 3
         }
     }
-            
-  
 }

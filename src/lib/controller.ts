@@ -98,8 +98,8 @@ export class Controller extends BaseClass {
             connected += hyperion.connectionState === 'connected' ? 1 : 0;
         }
 
-        this.library.writedp(`info.connection`, connected !== 0).catch(() => {
-            // nothing to do
+        this.library.writedp(`info.connection`, connected !== 0).catch(e => {
+            this.log.debug(`write info.connection: ${e instanceof Error ? e.message : String(e)}`);
         });
     }
 
@@ -156,7 +156,8 @@ export class Controller extends BaseClass {
     async onStateChange(id: string, state: ioBroker.State | null | undefined): Promise<void> {
         if (state) {
             const parts = id.split('.');
-            if (parts.length > 2 && parts[3] === 'controls') {
+            // accept <UDN>/controls/..., <UDN>/light/..., and <UDN>/instances/<id>/{controls,light}/...
+            if (parts.length > 2 && (parts[3] === 'controls' || parts[3] === 'instances' || parts[3] === 'light')) {
                 const tid = parts.slice(2).join('.');
                 this.library.setdb(tid, 'state', state.val, undefined, state.ack, state.ts);
 

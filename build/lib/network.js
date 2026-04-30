@@ -34,7 +34,7 @@ module.exports = __toCommonJS(network_exports);
 var import_fast_xml_parser = require("fast-xml-parser");
 var import_library = require("./library");
 var import_node_ssdp = __toESM(require("node-ssdp"));
-var http = __toESM(require("http"));
+var http = __toESM(require("node:http"));
 var import_definition = require("./definition");
 class Network extends import_library.BaseClass {
   serviceType = "urn:hyperion-project.org:device:basic:1";
