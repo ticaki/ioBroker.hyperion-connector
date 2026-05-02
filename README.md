@@ -28,6 +28,7 @@ If you require additional commands, please post in the forum or here.
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22 now
 * (ticaki) feat: controls/effect/* — start hyperion effects (name dropdown is auto-populated from serverinfo)
 * (ticaki) feat: multi-instance support — per-instance channels under instances/<id>/, instances.json metadata, controls/instance/{setinstance,start,stop} lifecycle commands
 * (ticaki) feat: convenience light role — light/{power,brightness,color} as a VIS/Alexa/Google-friendly projection over componentstate LEDDEVICE / adjustment.brightness / color
