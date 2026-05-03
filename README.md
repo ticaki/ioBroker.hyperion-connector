@@ -62,6 +62,8 @@ If you require additional commands, please post in the forum or here.
 * (ticaki) initial release
 * (ticaki) initial release
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
