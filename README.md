@@ -32,9 +32,17 @@ If you require additional commands, please post in the forum or here.
 * (ticaki) feat: controls/effect/* — start hyperion effects (name dropdown is auto-populated from serverinfo)
 * (ticaki) feat: multi-instance support — per-instance channels under instances/<id>/, instances.json metadata, controls/instance/{setinstance,start,stop} lifecycle commands
 * (ticaki) feat: convenience light role — light/{power,brightness,color} as a VIS/Alexa/Google-friendly projection over componentstate LEDDEVICE / adjustment.brightness / color
-* (ticaki) feat: writable controls/videomode/mode, controls/processing/mappingType, controls/leddevice/identify
+* (ticaki) feat: writable controls/videomode/mode, controls/processing/mappingType (all 7 mapping types)
 * (ticaki) chore: replaced silent catch blocks with debug logging so failures stop being invisible
 * (ticaki) test: added a reusable mock hyperion server (test/mock-hyperion-server.ts) and protocol-level specs (npm run test:hyperion-mock); the existing smoke test (test/integration.js) is unchanged
+* (ticaki) feat: server version detection (SSDP + sysinfo) — features are only used when the server supports them, older servers get a fallback
+* (ticaki) feat: adjustment turnOnThreshold/turnOffThreshold (Hyperion > 2.2.1)
+* (ticaki) fix: instance-scoped commands send `instance` as array (>= 2.1.0) resp. switch the instance first (older servers); global commands no longer get an `instance` field
+* (ticaki) fix: controls/instance/setinstance uses Hyperion's `switchTo` subcommand
+* (ticaki) fix: adjustment only sends the values changed since the last activate (no more silently dropped commands because of an empty id, no overwriting with defaults); controls/adjustment mirrors the server values
+* (ticaki) fix: serverinfo was not loaded after a token login
+* (ticaki) fix: stale websocket was not terminated on reconnect; alive check no longer fires on a closed connection
+* (ticaki) fix: per-instance activate buttons are reset after the command was acknowledged
 * (ticaki) docs: added CLAUDE.md with project conventions, architecture map and Hyperion-API quick reference
 
 ### 0.2.1 (2025-11-11)

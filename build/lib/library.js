@@ -394,7 +394,7 @@ class Library extends BaseClass {
   getStates(str) {
     const result = {};
     for (const dp in this.stateDataBase) {
-      if (dp.search(new RegExp(str, "g")) != -1) {
+      if (dp.startsWith(str)) {
         result[dp] = this.stateDataBase[dp];
       }
     }
@@ -507,10 +507,8 @@ class Library extends BaseClass {
    */
   setdb(dp, type, val = void 0, stateType = void 0, ack = true, ts = Date.now(), obj = void 0, init = false) {
     if (typeof type == "object") {
-      type = type;
       this.stateDataBase[dp] = type;
     } else {
-      type = type;
       this.stateDataBase[dp] = {
         type,
         stateTyp: stateType !== void 0 ? stateType : this.stateDataBase[dp] !== void 0 && this.stateDataBase[dp].stateTyp !== void 0 ? this.stateDataBase[dp].stateTyp : void 0,
@@ -575,6 +573,7 @@ class Library extends BaseClass {
    * @returns void
    */
   async initStates(states) {
+    var _a, _b;
     if (!states) {
       return;
     }
@@ -588,7 +587,7 @@ class Library extends BaseClass {
         this.setdb(
           dp,
           "state",
-          states[state] && states[state].val ? states[state].val : void 0,
+          (_b = (_a = states[state]) == null ? void 0 : _a.val) != null ? _b : void 0,
           obj && obj.common && obj.common.type ? obj.common.type : void 0,
           states[state] && states[state].ack,
           states[state] && states[state].ts ? states[state].ts : Date.now(),

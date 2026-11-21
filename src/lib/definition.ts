@@ -194,7 +194,6 @@ export type statesObjectsType = {
                 | customChannelType;
             videomode: { mode: ioBroker.StateObject } | customChannelType;
             processing: { mappingType: ioBroker.StateObject } | customChannelType;
-            leddevice: { identify: ioBroker.StateObject } | customChannelType;
         } & customChannelType;
     };
 };
@@ -258,9 +257,6 @@ export const controlDefaults = {
         processing: {
             mappingType: 'multicolor_mean',
         },
-        leddevice: {
-            identify: false,
-        },
         adjustment: {
             activate: false,
             red: [0, 0, 0],
@@ -277,6 +273,8 @@ export const controlDefaults = {
             temperature: 6500,
             backlightThreshold: 50,
             backlightColored: false,
+            turnOnThreshold: 0,
+            turnOffThreshold: 0,
             gammaRed: 1.0,
             gammaGreen: 1.0,
             gammaBlue: 1.0,
@@ -562,6 +560,38 @@ export const statesObjects: statesObjectsType = {
                         write: true,
                         min: 0,
                         max: 100,
+                        step: 1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                turnOnThreshold: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'per-LED brightness hysteresis: turn on above (Hyperion > 2.2.1)',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 255,
+                        step: 1,
+                        def: 0,
+                    },
+                    native: {},
+                },
+                turnOffThreshold: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'per-LED brightness hysteresis: turn off below (Hyperion > 2.2.1)',
+                        type: 'number',
+                        role: 'level',
+                        read: true,
+                        write: true,
+                        min: 0,
+                        max: 255,
                         step: 1,
                         def: 0,
                     },
@@ -1196,30 +1226,13 @@ export const statesObjects: statesObjectsType = {
                         def: 'multicolor_mean',
                         states: {
                             multicolor_mean: 'multicolor_mean',
+                            multicolor_mean_squared: 'multicolor_mean_squared',
                             unicolor_mean: 'unicolor_mean',
+                            dominant_color: 'dominant_color',
+                            unicolor_dominant: 'unicolor_dominant',
+                            dominant_color_advanced: 'dominant_color_advanced',
+                            unicolor_dominant_advanced: 'unicolor_dominant_advanced',
                         },
-                    },
-                    native: {},
-                },
-            },
-            // https://github.com/hyperion-project/hyperion.ng/blob/master/libsrc/api/JSONRPC_schema/schema-leddevice.json
-            leddevice: {
-                _channel: {
-                    _id: '',
-                    type: 'channel',
-                    common: { name: '' },
-                    native: {},
-                },
-                identify: {
-                    _id: '',
-                    type: 'state',
-                    common: {
-                        name: 'blink LEDs in sequence to identify the device wiring',
-                        type: 'boolean',
-                        role: 'button',
-                        read: false,
-                        write: true,
-                        def: false,
                     },
                     native: {},
                 },
@@ -1623,6 +1636,47 @@ export const statesObjects: statesObjectsType = {
                     type: 'channel',
                     common: {
                         name: '',
+                    },
+                    native: {},
+                },
+                temperature: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'color temperature in Kelvin (Hyperion >= 2.1)',
+                        type: 'number',
+                        role: 'value',
+                        read: true,
+                        write: false,
+                        unit: 'K',
+                    },
+                    native: {},
+                },
+                turnOnThreshold: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'per-LED brightness hysteresis: turn on above (Hyperion > 2.2.1)',
+                        type: 'number',
+                        role: 'value',
+                        read: true,
+                        write: false,
+                        min: 0,
+                        max: 255,
+                    },
+                    native: {},
+                },
+                turnOffThreshold: {
+                    _id: '',
+                    type: 'state',
+                    common: {
+                        name: 'per-LED brightness hysteresis: turn off below (Hyperion > 2.2.1)',
+                        type: 'number',
+                        role: 'value',
+                        read: true,
+                        write: false,
+                        min: 0,
+                        max: 255,
                     },
                     native: {},
                 },

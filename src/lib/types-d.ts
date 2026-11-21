@@ -116,6 +116,9 @@ export type ServerInfoType = {
             magenta: [number, number, number];
             red: [number, number, number];
             saturationGain: number;
+            temperature?: number;
+            turnOnThreshold?: number;
+            turnOffThreshold?: number;
             white: [number, number, number];
             yellow: [number, number, number];
         }>;
@@ -214,6 +217,10 @@ export type AdjustmentControlsType = {
     brightnessCompensation?: number;
     saturationGain?: number;
     temperature?: number;
+    /** Hyperion > 2.2.1 */
+    turnOnThreshold?: number;
+    /** Hyperion > 2.2.1 */
+    turnOffThreshold?: number;
 };
 
 export type ServerInfoForStatesType = {
@@ -240,6 +247,9 @@ export type ServerInfoForStatesType = {
         magenta: string;
         red: string;
         saturationGain: number;
+        temperature?: number;
+        turnOnThreshold?: number;
+        turnOffThreshold?: number;
         white: string;
         yellow: string;
     };

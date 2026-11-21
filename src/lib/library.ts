@@ -434,7 +434,9 @@ export class Library extends BaseClass {
     getStates(str: string): { [key: string]: LibraryStateVal } {
         const result: { [key: string]: LibraryStateVal } = {};
         for (const dp in this.stateDataBase) {
-            if (dp.search(new RegExp(str, 'g')) != -1) {
+            // plain prefix match — a RegExp would treat '.' as wildcard and, unanchored, let
+            // `<UDN>.controls.x.` also match `<UDN>.instances.<id>.controls.x.`
+            if (dp.startsWith(str)) {
                 result[dp] = this.stateDataBase[dp];
             }
         }
@@ -564,12 +566,10 @@ export class Library extends BaseClass {
         init: boolean = false,
     ): LibraryStateVal {
         if (typeof type == 'object') {
-            type = type as LibraryStateVal;
             this.stateDataBase[dp] = type;
         } else {
-            type = type as ioBroker.ObjectType;
             this.stateDataBase[dp] = {
-                type: type,
+                type: type as ioBroker.ObjectType,
                 stateTyp:
                     stateType !== undefined
                         ? stateType
@@ -668,7 +668,7 @@ export class Library extends BaseClass {
                 this.setdb(
                     dp,
                     'state',
-                    states[state] && states[state].val ? states[state].val : undefined,
+                    states[state]?.val ?? undefined,
                     obj && obj.common && obj.common.type ? obj.common.type : undefined,
                     states[state] && states[state].ack,
                     states[state] && states[state].ts ? states[state].ts : Date.now(),

@@ -138,8 +138,18 @@ When you add a new control:
 
 ## Hyperion JSON-API quick reference
 
-Outgoing commands (each takes an optional `tan` for response correlation,
-and most take an optional `instance: <id>` for multi-instance servers):
+Outgoing commands (each takes an optional `tan` for response correlation).
+
+**Instance targeting is version dependent** (see `sendWsCommand` in `hyperion.ts`):
+- Hyperion >= 2.1.0: color, effect, adjustment, clear, clearall, componentstate,
+  sourceselect, processing, image take `"instance": [<id>, …]` — an **array**; a bare
+  number is rejected ("Invalid params"). `serverinfo`/`instance` take a plain integer.
+- system, videomode, leddevice, … have no `instance` property at all; every schema has
+  `additionalProperties: false`, so an unknown field rejects the whole command.
+- Hyperion < 2.1.0: no per-command `instance` → fallback `instance switchTo` first.
+- New fields must be version-gated (`isVersionAtLeast`, `ADJUSTMENT_KEY_MIN_VERSION`):
+  e.g. `adjustment.temperature` >= 2.1.0, `turnOnThreshold`/`turnOffThreshold` > 2.2.1.
+  Server version comes from SSDP `modelNumber`, refined by `sysinfo.hyperion.version`.
 
 ```jsonc
 { "command": "color",          "color": [255,0,0], "priority": 50, "duration": 5000, "origin": "ioBroker" }
@@ -150,9 +160,9 @@ and most take an optional `instance: <id>` for multi-instance servers):
 { "command": "adjustment",     "adjustment": { "brightness": 75 } }
 { "command": "videomode",      "videoMode": "2D" }
 { "command": "processing",     "mappingType": "multicolor_mean" }
-{ "command": "leddevice",      "subcommand": "identify" }
-{ "command": "instance",       "subcommand": "setinstance", "instance": 0 }
-{ "command": "serverinfo",     "subscribe": ["components-update", "priorities-update", …] }
+{ "command": "instance",       "subcommand": "switchTo", "instance": 0 }   // there is no "setinstance"
+{ "command": "serverinfo",     "subscribe": [] }   // returns info AND subscribes; [] = all default topics
+                                                   // (subcommand "subscribe" would reply without info)
 { "command": "authorize",      "subcommand": "tokenRequired" }       // first call after connect
 { "command": "authorize",      "subcommand": "login", "token": "<TOKEN>" }
 { "command": "authorize",      "subcommand": "requestToken", "comment": "ioBroker", "id": "<5char>" }

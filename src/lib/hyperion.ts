@@ -4,6 +4,58 @@ import type { configOfHyperionInstance, DescriptionType, SysInfoCommand } from '
 import { controlDefaults, genericStateObjects, statesObjects } from './definition';
 
 /**
+ * Extract `[major, minor, patch]` from a Hyperion version string.
+ *
+ * @param raw e.g. `2.2.0`, `2.0.17-beta.1`, `Hyperion 2.1.1 (nightly)`
+ */
+export function parseHyperionVersion(raw: unknown): [number, number, number] | undefined {
+    if (typeof raw !== 'string') {
+        return undefined;
+    }
+    const m = raw.match(/(\d+)\.(\d+)\.(\d+)/);
+    return m ? [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)] : undefined;
+}
+
+/**
+ * Compare two versions; < 0 if a < b, 0 if equal, > 0 if a > b.
+ *
+ * @param a version a
+ * @param b version b
+ */
+export function compareVersions(a: readonly number[], b: readonly number[]): number {
+    for (let i = 0; i < 3; i++) {
+        const d = (a[i] ?? 0) - (b[i] ?? 0);
+        if (d !== 0) {
+            return d;
+        }
+    }
+    return 0;
+}
+
+/** commands whose JSON schema accepts `instance: number[]` (Hyperion >= 2.1.0) */
+const INSTANCE_ARRAY_COMMANDS = new Set([
+    'color',
+    'effect',
+    'adjustment',
+    'clear',
+    'clearall',
+    'componentstate',
+    'sourceselect',
+    'processing',
+    'image',
+]);
+
+/** server-wide commands — never instance-scoped, schema has no `instance` property */
+const GLOBAL_COMMANDS = new Set(['system', 'videomode', 'instance', 'authorize', 'sysinfo', 'leddevice', 'config']);
+
+/** adjustment keys and the first Hyperion version whose schema accepts them (older: base set) */
+const ADJUSTMENT_KEY_MIN_VERSION: Record<string, [number, number, number]> = {
+    temperature: [2, 1, 0],
+    turnOnThreshold: [2, 2, 2],
+    turnOffThreshold: [2, 2, 2],
+};
+
+/**
  * Hyperion class
  * do all then work here
  */
@@ -25,6 +77,20 @@ export class Hyperion extends BaseClass {
     aliveCheckTimeout: ioBroker.Timeout | undefined;
 
     legacyAliveCheck: boolean = true;
+
+    /** instance chosen via controls/instance/setinstance — target of commands without explicit instance */
+    selectedInstance: number = 0;
+    /** instance the websocket connection is currently switched to (new connections start at 0) */
+    activeInstance: number = 0;
+
+    /** server version [major, minor, patch]; undefined until SSDP description or sysinfo told us */
+    serverVersion: [number, number, number] | undefined;
+
+    /**
+     * Prefixes (`<UDN>.controls.` or `<UDN>.instances.<id>.controls.`) of commands sent with tan 100,
+     * per command name, in send order. Lets the ACK handler reset the right subtree.
+     */
+    pendingAckPrefixes: Map<string, string[]> = new Map();
 
     /** ids of hyperion instances last seen in serverinfo / instance-update */
     knownInstanceIds: Set<number> = new Set();
@@ -51,28 +117,43 @@ export class Hyperion extends BaseClass {
         );
     }
 
-    checkHyperionVersion(): void {
-        if (!this.description) {
+    /**
+     * Set the server version (from the SSDP description or from `sysinfo.hyperion.version`)
+     * and derive the version dependent behaviour from it.
+     *
+     * @param raw version string as reported by the server, e.g. `2.2.0` or `2.0.17-beta.1+PR1234`
+     */
+    setServerVersion(raw: string | undefined): void {
+        const version = parseHyperionVersion(raw);
+        if (!version) {
             return;
         }
-        let version = this.description.device.modelNumber;
-        if (version) {
-            const temp = version.match(/(\d+\.\d+\.\d+)/);
-            if (temp) {
-                version = temp[1];
-
-                const parts = version.split('.');
-                this.log.debug('Hyperion version:', version);
-                if (parts.length >= 3) {
-                    if (parseInt(parts[0]) > 2 || parseInt(parts[1]) > 0 || parseInt(parts[2]) > 16) {
-                        this.legacyAliveCheck = false;
-                    } else {
-                        this.log.warn('Hyperion version is equal or lower than 2.0.16, use legacy alive check');
-                        this.legacyAliveCheck = true;
-                    }
-                }
-            }
+        const changed = this.serverVersion === undefined || compareVersions(version, this.serverVersion) !== 0;
+        this.serverVersion = version;
+        if (!changed) {
+            return;
         }
+        this.log.debug(`Hyperion version: ${version.join('.')}`);
+        this.legacyAliveCheck = !this.isVersionAtLeast(2, 0, 17);
+        if (this.legacyAliveCheck) {
+            this.log.warn('Hyperion version is equal or lower than 2.0.16, use legacy alive check');
+        }
+    }
+
+    /**
+     * Whether the connected server is at least the given version.
+     * Unknown version → `false`, so new features are only used when the server is known to support them.
+     *
+     * @param major major version
+     * @param minor minor version
+     * @param patch patch version
+     */
+    isVersionAtLeast(major: number, minor = 0, patch = 0): boolean {
+        return this.serverVersion !== undefined && compareVersions(this.serverVersion, [major, minor, patch]) >= 0;
+    }
+
+    checkHyperionVersion(): void {
+        this.setServerVersion(this.description?.device.modelNumber);
     }
 
     /**
@@ -176,8 +257,15 @@ export class Hyperion extends BaseClass {
      */
     async reconnect(): Promise<void> {
         if (this.ws) {
-            this.ws.terminate;
+            // drop a still existing socket without triggering its close → delayReconnect handler
+            const old = this.ws;
+            this.ws = undefined;
+            old.removeAllListeners();
+            old.on('error', () => {});
+            old.terminate();
         }
+        this.pendingAckPrefixes.clear();
+        this.activeInstance = 0;
         try {
             // get description of hyperion server
             this.description = await this.adapter.controller.network.getSsdpDescription(
@@ -259,19 +347,7 @@ export class Hyperion extends BaseClass {
                                     false,
                                     genericStateObjects.authenticationError,
                                 );
-                                this.setOnline(true);
-                                this.aliveReset();
-                                if (this.ws) {
-                                    this.ws.send(JSON.stringify({ command: 'sysinfo', tan: 1 }));
-                                    this.ws.send(
-                                        JSON.stringify({
-                                            command: 'serverinfo',
-                                            subcommand: 'subscribe',
-                                            subscribe: [],
-                                            tan: 1,
-                                        }),
-                                    );
-                                }
+                                this.onConnectionReady();
                                 return;
                             }
 
@@ -286,18 +362,7 @@ export class Hyperion extends BaseClass {
                                     false,
                                     genericStateObjects.authenticationError,
                                 );
-                                this.setOnline(true);
-                                this.aliveReset();
-                                if (this.ws) {
-                                    this.ws.send(JSON.stringify({ command: 'sysinfo', tan: 1 }));
-                                    this.ws.send(
-                                        JSON.stringify({
-                                            command: 'serverinfo',
-                                            subscribe: [],
-                                            tan: 1,
-                                        }),
-                                    );
-                                }
+                                this.onConnectionReady();
                                 return;
                             }
 
@@ -451,6 +516,7 @@ export class Hyperion extends BaseClass {
                             }
                             // Convenience light role: mirror brightness from first adjustment
                             await this.reflectLightBrightness(info.adjustment);
+                            await this.reflectAdjustmentControls(info.adjustment);
                             // Reflect videomode + imageToLedMappingType into the writable controls
                             if (typeof info.videomode === 'string') {
                                 await this.library.writedp(`${this.UDN}.controls.videomode.mode`, info.videomode);
@@ -468,7 +534,7 @@ export class Hyperion extends BaseClass {
                                 await this.library.writeFromJson(this.UDN, 'device.serverinfo', statesObjects, info);
                                 await this.cleanTree();
                             }
-                        } else if (data.command.endsWith === 'priorities-update') {
+                        } else if (data.command === 'priorities-update') {
                             if (this.ws) {
                                 this.ws.send(
                                     JSON.stringify({
@@ -509,6 +575,7 @@ export class Hyperion extends BaseClass {
                                 // Reflect into convenience light.brightness; full state stays
                                 // in serverinfo and updates on the next refresh poll.
                                 await this.reflectLightBrightness(data.data);
+                                await this.reflectAdjustmentControls(data.data);
                                 this.log.debug('Received:', JSON.stringify(data));
                                 return;
                             } else if (path == 'videomode') {
@@ -550,6 +617,7 @@ export class Hyperion extends BaseClass {
                             }
                             this.log.debug('Received:', JSON.stringify(data));
                         } else if (data.command === 'sysinfo') {
+                            this.setServerVersion((data as SysInfoCommand).info?.hyperion?.version);
                             if (this.isSubtreeEnabled('enableSysinfo')) {
                                 await this.library.writeFromJson(
                                     this.UDN,
@@ -573,8 +641,10 @@ export class Hyperion extends BaseClass {
                 this.log.info('Connection closed');
                 this.ws = undefined;
 
+                // the socket is gone: stop the alive check, otherwise it fires on a dead
+                // connection, logs "connection lost!" and restarts the reconnect timer
+                this.aliveReset(true);
                 if (this.connectionState !== 'notAuthorize') {
-                    this.aliveReset(false);
                     this.library
                         .writedp(`${this.UDN}.controls.checkOnline`, false, genericStateObjects.checkOnline)
                         .catch(e => {
@@ -604,6 +674,24 @@ export class Hyperion extends BaseClass {
         }
     }
 
+    /**
+     * Connection is open and (if required) authorized: fetch sysinfo + serverinfo and subscribe
+     * to all default push topics. `serverinfo` without subcommand returns the info AND subscribes
+     * (`subcommand: 'subscribe'` would only subscribe and reply `serverinfo-subscribe` without info).
+     */
+    onConnectionReady(): void {
+        this.setOnline(true);
+        this.aliveReset();
+        if (!this.ws) {
+            return;
+        }
+        if (this.selectedInstance !== 0) {
+            this.ensureActiveInstance(this.selectedInstance);
+        }
+        this.ws.send(JSON.stringify({ command: 'sysinfo', tan: 1 }));
+        this.ws.send(JSON.stringify({ command: 'serverinfo', subscribe: [], tan: 1 }));
+    }
+
     async cleanTree(): Promise<void> {
         for (const state of ['priorities', 'adjustment', 'transform', 'activeLedColor']) {
             await this.library.garbageColleting(`${this.UDN}.${state}`);
@@ -620,9 +708,7 @@ export class Hyperion extends BaseClass {
         if (this.delayTimeout) {
             this.adapter.clearTimeout(this.delayTimeout);
         }
-        if (this.aliveTimeout) {
-            this.adapter.clearTimeout(this.aliveTimeout);
-        }
+        this.aliveReset(true);
         this.library.writedp(`${this.UDN}.online`, false, genericStateObjects.online).catch(() => {
             this.log.error('Error in writedp');
         });
@@ -664,6 +750,10 @@ export class Hyperion extends BaseClass {
         }
         this.aliveTimeout = this.adapter.setTimeout(
             async () => {
+                if (!this.ws) {
+                    // no connection to check — the close handler takes care of reconnecting
+                    return;
+                }
                 if (this.ws) {
                     //this.log.debug('Ping');
                     if (this.legacyAliveCheck) {
@@ -760,10 +850,28 @@ export class Hyperion extends BaseClass {
     }
 
     /**
+     * Switch the connection's instance (`instance switchTo`) if it is not already the given one.
+     *
+     * @param instanceId hyperion instance id
+     */
+    private ensureActiveInstance(instanceId: number): void {
+        if (!this.ws || this.activeInstance === instanceId) {
+            return;
+        }
+        this.ws.send(JSON.stringify({ command: 'instance', subcommand: 'switchTo', instance: instanceId, tan: 90 }));
+        this.activeInstance = instanceId;
+    }
+
+    /**
      * Send a JSON command to Hyperion via WebSocket.
-     * If `instanceId` is given, the `instance` field is appended so that
-     * the command targets a specific Hyperion instance rather than the
-     * connection's currently selected default instance.
+     *
+     * Targeting an instance depends on the server version:
+     * - >= 2.1.0: commands in {@link INSTANCE_ARRAY_COMMANDS} take `instance: [id]`.
+     * - older servers (or `controls/action` passthrough): no per-command `instance` field exists,
+     *   so the connection is switched with `instance switchTo` first (fallback).
+     * Global commands (system, videomode, …) never get an `instance` field — the JSON schema
+     * rejects unknown properties.
+     * Without `instanceId` the command goes to the instance selected via `controls/instance/setinstance`.
      *
      * @param payload  command payload (must contain `command` and optionally `tan`)
      * @param instanceId  optional Hyperion instance id to target
@@ -772,7 +880,30 @@ export class Hyperion extends BaseClass {
         if (!this.ws) {
             return;
         }
-        const full = instanceId !== undefined ? { ...payload, instance: instanceId } : payload;
+        let full = payload;
+        const perCommandInstance =
+            this.isVersionAtLeast(2, 1, 0) &&
+            typeof payload.command === 'string' &&
+            INSTANCE_ARRAY_COMMANDS.has(payload.command) &&
+            payload.instance === undefined;
+        if (instanceId !== undefined && perCommandInstance) {
+            full = { ...payload, instance: [instanceId] };
+        } else if (
+            instanceId !== undefined &&
+            typeof payload.command === 'string' &&
+            GLOBAL_COMMANDS.has(payload.command)
+        ) {
+            // server-wide command, instance is irrelevant
+        } else {
+            this.ensureActiveInstance(instanceId ?? this.selectedInstance);
+        }
+        if (payload.tan === 100 && typeof payload.command === 'string') {
+            const prefix =
+                instanceId !== undefined ? `${this.UDN}.instances.${instanceId}.controls.` : `${this.UDN}.controls.`;
+            const queue = this.pendingAckPrefixes.get(payload.command) ?? [];
+            queue.push(prefix);
+            this.pendingAckPrefixes.set(payload.command, queue);
+        }
         this.ws.send(JSON.stringify(full));
     }
 
@@ -867,32 +998,56 @@ export class Hyperion extends BaseClass {
             } else if (parts.length == 6 && parts[4] === 'adjustment' && parts[5] === 'activate') {
                 if (this.ws) {
                     const values = this.getControlsStates('adjustment', instanceId);
-                    const command: {
-                        [key: string]: any;
-                    } = {
-                        command: 'adjustment',
-                    };
-                    const adjustment: { [key: string]: boolean | number | any[] } = {};
-                    command.adjustment = adjustment;
+                    const adjustment: { [key: string]: boolean | number | string | any[] } = {};
                     for (const k in values) {
-                        const v = k as keyof typeof values;
                         const key = k.split('.').pop();
-                        if (key !== undefined) {
-                            let val: any = values[v]!.val;
-                            const defaultValue =
-                                controlDefaults.controls.adjustment[
-                                    key as keyof typeof controlDefaults.controls.adjustment
-                                ];
-                            if (defaultValue !== undefined) {
-                                if (typeof defaultValue === 'object' && Array.isArray(defaultValue)) {
-                                    val = val ? JSON.parse(val) : [];
-                                }
-                            }
-                            if (key !== 'activate' && values[k] && values[v]!.val !== undefined) {
-                                adjustment[key] = val;
+                        const entry = values[k];
+                        // Only send what the user changed since the last successful activate (ack=false).
+                        // Sending every field would overwrite the server's values with our defaults,
+                        // e.g. red=[0,0,0] blacks out the red channel.
+                        if (key === undefined || key === 'activate' || !entry || entry.ack !== false) {
+                            continue;
+                        }
+                        if (entry.val === undefined || entry.val === null) {
+                            continue;
+                        }
+                        // an empty id makes Hyperion look up adjustment "" and silently drop the command
+                        if (key === 'id' && entry.val === '') {
+                            continue;
+                        }
+                        const minVersion = ADJUSTMENT_KEY_MIN_VERSION[key];
+                        if (minVersion && !this.isVersionAtLeast(...minVersion)) {
+                            this.log.warn(
+                                `adjustment.${key} needs Hyperion >= ${minVersion.join('.')} - not sent to this server`,
+                            );
+                            continue;
+                        }
+                        const defaultValue =
+                            controlDefaults.controls.adjustment[
+                                key as keyof typeof controlDefaults.controls.adjustment
+                            ];
+                        let val: any = entry.val;
+                        if (Array.isArray(defaultValue) && typeof val === 'string') {
+                            try {
+                                val = JSON.parse(val);
+                            } catch (e) {
+                                this.log.warn(
+                                    `adjustment.${key}: invalid JSON array ${val} (${e instanceof Error ? e.message : String(e)})`,
+                                );
+                                continue;
                             }
                         }
+                        adjustment[key] = val;
                     }
+                    if (Object.keys(adjustment).filter(k => k !== 'id').length === 0) {
+                        this.log.warn('adjustment: nothing changed since the last activate - nothing to send');
+                        await this.library.writedp(
+                            `${instanceId !== undefined ? `${this.UDN}.instances.${instanceId}` : this.UDN}.controls.adjustment.activate`,
+                            false,
+                        );
+                        return;
+                    }
+                    const command = { command: 'adjustment', adjustment };
                     this.sendWsCommand({ ...command, tan: 100 }, instanceId);
                 }
             } else if (parts.length == 6 && parts[4] === 'system') {
@@ -951,10 +1106,6 @@ export class Hyperion extends BaseClass {
                 if (this.ws && typeof state.val === 'string') {
                     this.sendWsCommand({ command: 'processing', mappingType: state.val, tan: 90 }, instanceId);
                 }
-            } else if (parts.length == 6 && parts[4] === 'leddevice' && parts[5] === 'identify') {
-                if (this.ws) {
-                    this.sendWsCommand({ command: 'leddevice', subcommand: 'identify', tan: 90 }, instanceId);
-                }
             } else if (parts.length == 6 && parts[4] === 'instance') {
                 // controls/instance/{setinstance,start,stop} — instance-management,
                 // never instance-scoped (instanceId from path-rewrite is ignored).
@@ -962,9 +1113,13 @@ export class Hyperion extends BaseClass {
                     const sub = parts[5];
                     let payload: { [key: string]: any } | undefined;
                     if (sub === 'setinstance') {
+                        // Hyperion calls this `switchTo` (there never was a `setinstance` subcommand).
+                        // It switches only this connection; remember it for later commands and reconnects.
+                        this.selectedInstance = state.val;
+                        this.activeInstance = state.val;
                         payload = {
                             command: 'instance',
-                            subcommand: 'setinstance',
+                            subcommand: 'switchTo',
                             instance: state.val,
                             tan: 100,
                         };
@@ -1075,7 +1230,25 @@ export class Hyperion extends BaseClass {
         }
     }
 
+    /**
+     * Take the controls prefix of the oldest pending tan-100 command with this name.
+     * Commands not sent via `sendWsCommand` (e.g. instance management) fall back to `<UDN>.controls.`.
+     *
+     * @param command command name as sent (response name without the `-subcommand` suffix)
+     */
+    private takeAckPrefix(command: string): string {
+        const queue = this.pendingAckPrefixes.get(command);
+        const prefix = queue?.shift();
+        if (queue && queue.length === 0) {
+            this.pendingAckPrefixes.delete(command);
+        }
+        return prefix ?? `${this.UDN}.controls.`;
+    }
+
     async updateACKControlsStates(data: any): Promise<void> {
+        if (typeof data.command !== 'string') {
+            return;
+        }
         if (data.success) {
             if (data.tan == 220) {
                 this.log.debug(`Command ${data.command} successful - JSON: ${JSON.stringify(data)}`);
@@ -1086,7 +1259,8 @@ export class Hyperion extends BaseClass {
             } else if (data.tan == 100) {
                 const commands = data.command.split('-');
                 this.log.debug(`Command ${commands[0]} successful - JSON: ${JSON.stringify(data)}`);
-                const values = this.library.getStates(`${this.UDN}.controls.${commands[0]}.`);
+                const prefix = this.takeAckPrefix(commands[0]);
+                const values = this.library.getStates(`${prefix}${commands[0]}.`);
                 for (const k in values) {
                     const v = k as keyof typeof values;
                     if ((commands[0] == 'color' || commands[0] == 'effect') && k.endsWith('activate')) {
@@ -1100,7 +1274,10 @@ export class Hyperion extends BaseClass {
                     }
                 }
             }
-        } else if (data.tan >= 100) {
+        } else if (data.tan >= 90) {
+            if (data.tan == 100) {
+                this.takeAckPrefix(data.command.split('-')[0]);
+            }
             this.log.warn(`Command ${data.command} failed - JSON: ${JSON.stringify(data)}`);
         }
     }
@@ -1129,6 +1306,35 @@ export class Hyperion extends BaseClass {
         const brightness = adjustments[0]?.brightness;
         if (typeof brightness === 'number') {
             await this.library.writedp(`${this.UDN}.light.brightness`, brightness);
+        }
+    }
+
+    /**
+     * Mirror the server's current adjustment (first bucket) into `controls.adjustment.*` (ack=true),
+     * so the controls show real values. States the user changed but not yet activated (ack=false)
+     * are left alone — they are exactly what the next `activate` sends.
+     *
+     * @param adjustments  array as delivered by serverinfo.adjustment / adjustment-update
+     */
+    async reflectAdjustmentControls(adjustments: any): Promise<void> {
+        if (!Array.isArray(adjustments) || adjustments.length === 0 || typeof adjustments[0] !== 'object') {
+            return;
+        }
+        const current = adjustments[0] as Record<string, unknown>;
+        const prefix = `${this.UDN}.controls.adjustment.`;
+        for (const key of Object.keys(controlDefaults.controls.adjustment)) {
+            if (key === 'activate' || current[key] === undefined) {
+                continue;
+            }
+            const cached = this.library.readdb(`${prefix}${key}`);
+            if (cached && cached.ack === false) {
+                continue;
+            }
+            const raw = current[key];
+            const val = Array.isArray(raw) ? JSON.stringify(raw) : raw;
+            if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+                await this.library.writedp(`${prefix}${key}`, val);
+            }
         }
     }
 

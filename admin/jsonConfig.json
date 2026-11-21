@@ -1,25 +1,25 @@
 {
-	"i18n": true,
-	"type": "panel",
-	"items": {
+    "i18n": true,
+    "type": "panel",
+    "items": {
         "getDevices": {
-					"newLine": true,
-					"type": "sendTo",
-                    "defaultSendTo": "getDevices",
-					"command": "getDevices",
-					"jsonData": "{ \"date\": \"${data.devices}\"}",
-					"label": "getDevices",
-					"useNative": true,
-					"variant": "outlined",
-                    "disabled": "_changed",
-					"showProcess" : true,
-					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-                    "xl": 12
-				},
-        "devices":{
+            "newLine": true,
+            "type": "sendTo",
+            "defaultSendTo": "getDevices",
+            "command": "getDevices",
+            "jsonData": "{ \"date\": \"${data.devices}\"}",
+            "label": "getDevices",
+            "useNative": true,
+            "variant": "outlined",
+            "disabled": "_changed",
+            "showProcess": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "devices": {
             "type": "table",
             "label": "devices",
             "items": [
@@ -40,9 +40,9 @@
                 {
                     "type": "select",
                     "attr": "protocol",
-                    "title": "ServerProtocol", 
+                    "title": "ServerProtocol",
                     "validator": "data.ServerProtocol !== ''",
-                    "validatorNoSaveOnError": true,  
+                    "validatorNoSaveOnError": true,
                     "width": "5%",
                     "options": [
                         {
@@ -61,7 +61,7 @@
                     "attr": "ip",
                     "title": "ServerIP",
                     "validator": "data.ip !== ''",
-                    "validatorNoSaveOnError": true 
+                    "validatorNoSaveOnError": true
                 },
                 {
                     "type": "number",
@@ -72,7 +72,6 @@
                     "width": "7%",
                     "default": 8090
                 },
-                
                 {
                     "type": "text",
                     "attr": "token",
@@ -107,7 +106,12 @@
         "_dataReductionHint": {
             "type": "staticText",
             "text": "dataReductionHint",
-            "newLine": true
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
         },
         "enableSysinfo": {
             "type": "checkbox",
