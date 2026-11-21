@@ -208,7 +208,7 @@ export const controlDefaults = {
         color: {
             color: [0, 0, 0],
             priority: 1,
-            origin: '',
+            origin: 'ioBroker',
             duration: 0,
             activate: false,
         },

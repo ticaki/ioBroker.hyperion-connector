@@ -42,7 +42,8 @@ If you require additional commands, please post in the forum or here.
 * (ticaki) fix: adjustment only sends the values changed since the last activate (no more silently dropped commands because of an empty id, no overwriting with defaults); controls/adjustment mirrors the server values
 * (ticaki) fix: serverinfo was not loaded after a token login
 * (ticaki) fix: stale websocket was not terminated on reconnect; alive check no longer fires on a closed connection
-* (ticaki) fix: per-instance activate buttons are reset after the command was acknowledged
+* (ticaki) fix: activate buttons (incl. adjustment and per-instance) are reset after the reply, also on failure
+* (ticaki) fix: color commands failed with the default empty origin (Hyperion requires 4..20 chars)
 * (ticaki) docs: added CLAUDE.md with project conventions, architecture map and Hyperion-API quick reference
 
 ### 0.2.1 (2025-11-11)

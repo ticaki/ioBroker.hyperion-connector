@@ -964,6 +964,7 @@ export class Hyperion extends BaseClass {
                             }
                         }
                     }
+                    this.dropInvalidOrigin(command);
                     this.sendWsCommand({ ...command, tan: 100 }, instanceId);
                 }
             } else if (parts.length == 6 && parts[4] === 'effect' && parts[5] === 'activate') {
@@ -993,6 +994,7 @@ export class Hyperion extends BaseClass {
                         return;
                     }
                     command.effect = effect;
+                    this.dropInvalidOrigin(command);
                     this.sendWsCommand({ ...command, tan: 100 }, instanceId);
                 }
             } else if (parts.length == 6 && parts[4] === 'adjustment' && parts[5] === 'activate') {
@@ -1231,6 +1233,20 @@ export class Hyperion extends BaseClass {
     }
 
     /**
+     * Hyperion requires `origin` to be 4..20 characters; a shorter one (e.g. the empty default)
+     * rejects the whole command. Drop it so the server falls back to its default origin.
+     *
+     * @param command command object that may contain `origin`
+     */
+    private dropInvalidOrigin(command: { [key: string]: any }): void {
+        if (command.origin !== undefined && (typeof command.origin !== 'string' || command.origin.length < 4)) {
+            delete command.origin;
+        } else if (typeof command.origin === 'string' && command.origin.length > 20) {
+            command.origin = command.origin.slice(0, 20);
+        }
+    }
+
+    /**
      * Take the controls prefix of the oldest pending tan-100 command with this name.
      * Commands not sent via `sendWsCommand` (e.g. instance management) fall back to `<UDN>.controls.`.
      *
@@ -1263,7 +1279,7 @@ export class Hyperion extends BaseClass {
                 const values = this.library.getStates(`${prefix}${commands[0]}.`);
                 for (const k in values) {
                     const v = k as keyof typeof values;
-                    if ((commands[0] == 'color' || commands[0] == 'effect') && k.endsWith('activate')) {
+                    if (k.endsWith('.activate')) {
                         await this.library.writedp(k, false);
                     } else if (commands[0] == 'sourceselect' && k.endsWith('auto')) {
                         await this.library.writedp(k, false);
@@ -1276,7 +1292,13 @@ export class Hyperion extends BaseClass {
             }
         } else if (data.tan >= 90) {
             if (data.tan == 100) {
-                this.takeAckPrefix(data.command.split('-')[0]);
+                // reset the activate button also on failure, otherwise it stays stuck on true
+                const command = data.command.split('-')[0];
+                const prefix = this.takeAckPrefix(command);
+                const activate = `${prefix}${command}.activate`;
+                if (this.library.readdb(activate) !== undefined) {
+                    await this.library.writedp(activate, false);
+                }
             }
             this.log.warn(`Command ${data.command} failed - JSON: ${JSON.stringify(data)}`);
         }
